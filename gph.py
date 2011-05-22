@@ -1,0 +1,132 @@
+import re
+import os
+import log
+
+class graph(dict):
+    def getNodes(self):
+        nodes = self.keys()
+        for value in self.__reverseDict().keys():
+            if not(value in nodes):
+                nodes.append(value)
+        return nodes
+
+    def getInNodes(self, node):        
+        g = self.__reverseDict()
+        log.write('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 2)
+        return g[node]
+        
+    def getOutNodes(self, node):
+        log.send('out-nodes of ' + str(node) + ' are: ' + str(self[node]), 3)
+        return self[node]
+        
+    def isLeaf(self, node):
+        return self[node]==[]
+        
+    def toPdf(self, ofile='graph.pdf'):
+        f=open(ofile, 'w')
+        f.write(r"""digraph G {
+node [shape=box, style=rounded];
+rankdir=LR;
+""")
+        for idx, node in enumerate(self.getNodes()):
+            f.write(str(node))
+            f.write('[label = ' + node + ']\n')
+        for node in self.keys():
+            for onode in self[node]:
+                f.write(node + ' -> ' + onode + '\n')
+        f.write('}')
+        f.close()
+        os.system('dot -Tpdf -o' + ofile + '.pdf ' + ofile)
+
+    def __reverseDict(self):
+        g = self
+        all_values = list()
+        for item in g.values():
+            for subitem in item:
+                if not (subitem in all_values):
+                    all_values.append(subitem)
+        
+        rg=dict.fromkeys(all_values)
+        for key in rg:
+            rg[key] = []
+        for value in all_values:
+            for key in g.keys():
+                if value in g[key]:
+                    rg[value].append(key)
+        for value in g.keys():
+            if not(value in rg.keys()):
+                rg[value]=[]
+        return rg
+
+    def getAttrib(self, node, attr):
+        if (node, attr) in self.__nodeattribs:
+            return self.__nodeattribs[(node, attr)]
+        return None
+
+        
+    def setAttrib(self, node, attr, value):
+        log.send('Setting ' + 
+            str(attr) + ' = ' + str(value) +
+            ' for node: ' + str(node), 3)
+        self.__nodeattribs[(node, attr)] = value
+        
+    def delNode(self, node):
+        del(self[node])
+        for targets in self.values():
+            if node in targets:
+                del(targets[targets.index(node)])
+
+
+    def fromLeaf(self, leafprot):
+        for key in self.keys():
+            del(self[key])
+        f=open('leafprot.lf', 'w')
+        f.write(leafprot)
+        f.close()
+        t=os.system('leaf ' + 'leafprot.lf')
+        if t!=0:
+            raise NameError('Problems parsing protocol, check syntax.')
+        t=os.system('dot -Tpdf leafprot.lf.dot -otemp.pdf')
+        if t!=0:
+            raise NameError('Problems running dot: have you installed it?')
+                                
+        a = open('leafprot.lf.dot','r').read()
+        edges = re.findall(r'\d+->\d+', a)
+        nodelines = re.findall(r'(\d+) \[ (.*)\]', a)
+        nodes = list()        
+        
+        for node in nodelines:
+            nodeid = node[0]
+            nodename = ''
+            node_attribs = node[1].split(',')
+            for node_attrib in node_attribs:
+                key_val = node_attrib.split(' = ')
+                if key_val[0]=='label':
+                    nodename = key_val[1]
+                    nodes.append([nodeid, nodename])
+                    self.setAttrib(nodename, 'id', int(nodeid))
+                self.setAttrib(nodename, key_val[0].strip(), key_val[1].strip())            
+            
+        names = dict()
+        for node in nodes: names[node[0]]=node[1]
+            
+        for edge in edges:
+            thisnodes = re.findall('\d+', edge)
+            key = names[thisnodes[0]]
+            if key in self.keys():
+                self[key].append(names[thisnodes[1]])
+            else:
+                self[key]=[names[thisnodes[1]]]
+    
+        for value in names.values():
+            if not(value in self.keys()):
+                self[value]=[]
+    
+
+        os.remove('leafprot.lf.dot')
+        log.send('Graph is: ' + str(self), 2)        
+
+
+        
+    __nodeattribs = dict()
+    
