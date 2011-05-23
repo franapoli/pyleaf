@@ -113,8 +113,9 @@ class project():
         else:
             self.__usermodule = __import__(self.__modulename)
         if not self.__is_first_import:
+            log.send('Reloading user module.', 2)
             reload(self.__usermodule)
-            self.__is_first_import = False
+        self.__is_first_import = False
         log.send('Your module is: ' + str(self.__usermodule), 2)
         hislocals = dict()
 
