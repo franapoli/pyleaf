@@ -43,13 +43,13 @@ class project():
             if not os.path.exists(altfolder):
                 os.mkdir(altfolder)
             #NOOOOOOOOOOO: use like protocol.set_folder
-            self._protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
-            self._protocols[gname].getGraph().toPdf(altfolder+'/graph.dot')
+            self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
+            self.protocols[gname].getGraph().toPdf(altfolder+'/graph.dot')
             #if not os.path.exists('wdir'):
             #    os.mkdir('wdir')
             #if not os.path.exists('wdir/' + gname):
             #    os.mkdir('wdir/'+gname)
-            #self._protocols[gname].setWdir('wdir/'+gname)
+            #self.protocols[gname].setWdir('wdir/'+gname)
 
             
     def Name(self):
@@ -95,7 +95,7 @@ class project():
     def generateAltPaths(self):
         ngroups = self.getNodeGroups()
         temp = list()
-        [temp.append(t) for t in self.combinations(*(ngroups.values()))]
+        [temp.append(t[0]) for t in self.combinations(*(ngroups.values()))]
         return temp
         
     def guessLeafProt(self):
@@ -151,47 +151,47 @@ class project():
         
     def update(self):
         #self.updateGraphs(self._leafprot)
-        for prot in self._protocols.values():
+        for prot in self.protocols.values():
             prot.update(prot.getGraph(), self.seekforMods())
             
     def run(self):
-        for protname in self._protocols.keys():
+        for protname in self.protocols.keys():
             log.insertBreak()
             log.send('Running instance: ' + protname)
-            self._protocols[protname].run()
+            self.protocols[protname].run()
 
             
     def listAltProtocols(self):
-        for protname in self._protocols:
+        for protname in self.protocols:
             log.send('- ' + protname, 0)            
-            log.send('  ' + str(self._protocols[protname].getGraph()))
+            log.send('  ' + str(self.protocols[protname].getGraph()))
             
     def getAltProtocol(self, protname):
-        return self._protocols[protname]
+        return self.protocols[protname]
         
             
-    def provide(self, whaot):
-        if len(self._protocols)==1:
-            return self._protocols[self._protocols.keys()[0]].provide(what)
+    def provide(self, what):
+        if len(self.protocols)==1:
+            return self.protocols[self.protocols.keys()[0]].provide(what)
         else:
             resdict = dict()
-            for protname in self._protocols:
-                resdict[protname] = self._protocols[protname].provide(what)
+            for protname in self.protocols:
+                resdict[protname] = self.protocols[protname].provide(what)
             return resdict
             
     def getInputs(self, node):
-        if len(self._protocols)==1:
-            return self._protocols[self._protocols.keys()[0]].getInputs(node)
+        if len(self.protocols)==1:
+            return self.protocols[self.protocols.keys()[0]].getInputs(node)
         else:
             resdict = dict()
-            for protname in self._protocols:
-                resdict[protname] = self._protocols[protname].getInputs(node)
+            for protname in self.protocols:
+                resdict[protname] = self.protocols[protname].getInputs(node)
             return resdict
             
     def newFile(self, fname):
         return fname
 
-    _protocols = dict()
+    protocols = dict()
     _graph = graph()
     _name = ''
     _metafolder = ''

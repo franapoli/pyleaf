@@ -282,7 +282,7 @@ class protocol():
         
     def callMod(self, node, nodeparams):
         
-        if not hasattr(self._modules[node].getValue(), '_call_'): #check wether it's a function
+        if not self._checkIsFunction(self._modules[node].getValue()):
             dbgstr('Node '+node+' is not a function: passing itself.', 2)            
             newres = self._modules[node].getValue()
             self._processRawRes(node, newres)
@@ -314,9 +314,12 @@ class protocol():
             
         return newres
         
+    def _checkIsFunction(self, x):
+        #return hasattr(self._modules[node].getValue(), '_call_'):
+        return type(lambda y:y)==type(x)
         
     def placeFileRes(self, fname):
-        os.system('mv "'+ fname + '" ' + self._metafolder)
+        os.system('mv -r"'+ fname + '" ' + self._metafolder)
             
     def buildResName(self, inode, onode, rawres):
         if onode == None:
@@ -329,7 +332,7 @@ class protocol():
         flags = self.getGraph().getAttrib(node, 'LEAF_FLAGS')
         if flags == None:
             return False
-        return 'f' in flags
+        return 'f' in flags or 'F' in flags
         
     def updateFilePath(self, path):
         parts = os.path.split(path)
@@ -359,6 +362,7 @@ class protocol():
 #        else:
 
         if self.isFileMod(node):
+            import pdb; pdb.set_trace()
             if type(rawres)==tuple or type(rawres)==list:
                 for rawresi in rawres:
                     newresname = self.buildResName(node, None, rawresi)
