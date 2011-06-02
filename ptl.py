@@ -7,8 +7,6 @@ Created on Fri Oct 22 15:59:38 2010
 import os
 import cPickle
 import leafinspect
-#from leaf.gph import graph
-#from leaf.rfl import resfile as File
 from leaf.log import send as dbgstr
 from leaf.rrc import resource
 import copy
@@ -18,15 +16,15 @@ import copy
 class protocol():
     def __init__(self, graph, mods, folder):
         dbgstr('Initializing protocol with root: ' + folder)
-        self.__metafolder = folder
-        self.__rootdir = os.getcwd()
-        self.__resmap = dict()
+        self._metafolder = folder
+        self._rootdir = os.getcwd()
+        self._resmap = dict()
 
-        self.__graphres = resource('graph', folder+'/graph.grp')
-        self.__graphres.setValue(graph)
-        if self.__graphres.changed():
+        self._graphres = resource('graph', folder+'/graph.grp')
+        self._graphres.setValue(graph)
+        if self._graphres.changed():
             self.manageGraphChange()
-        self.__graphres.update()
+        self._graphres.update()
 
         for res in self.getResNames():
             newres = resource(res, folder+'/'+res+'.res')
@@ -35,23 +33,25 @@ class protocol():
         
         for mod in self.getNodeNames():
             newres = resource(mod, folder+'/'+mod+'.mod')
-            self.__modules[mod] = newres
+            newres.setDump(True)
+            self._modules[mod] = newres
 
         self.updateModules(mods)
-        
+
+
     def updateModules(self, mods):
         for modname in mods:
-            if modname in self.__modules.keys():
-                self.__modules[modname].setValue(mods[modname])
-                if self.__modules[modname].changed():
-                    self.untrustNode(self.__modules[modname].name())
-                self.__modules[modname].update()
+            if modname in self._modules.keys():
+                self._modules[modname].setValue(mods[modname])
+                if self._modules[modname].changed():
+                    self.untrustNode(self._modules[modname].name())
+                self._modules[modname].update()
             else:
                 dbgstr('New module: ' + modname)
-                self.__modules[modname] = resource(modname,
-                    self.__metafolder+'/'+modname+'.dmp' )
-                self.__modules[modname].setValue(mods[modname])
-                self.__modules[modname].update()                
+                self._modules[modname] = resource(modname,
+                    self._metafolder+'/'+modname+'.dmp' )
+                self._modules[modname].setValue(mods[modname])
+                self._modules[modname].update()                
                 
 
     def manageGraphChange(self):
@@ -59,22 +59,22 @@ class protocol():
     
     def show(self):
         dbgstr('Protocol:',0)
-        dbgstr(self.__leafprot, 0)
+        dbgstr(self._leafprot, 0)
         dbgstr('Node attributes:', 0)
         for node in self.getNodeNames():
             ostr = node +': '
-            for attrib in self.__nodeattribs.keys():
+            for attrib in self._nodeattribs.keys():
                 if attrib[0]==node:
-                    ostr += str(attrib[1])+'='+str(self.__nodeattribs[attrib])+', '
+                    ostr += str(attrib[1])+'='+str(self._nodeattribs[attrib])+', '
             dbgstr(ostr[0:-2], 0)
         
     def clean(self):
         for res in self.getResNames():
             self.clearDump(res)
 
-        if os.path.exists(self.__metafolder):
-            if os.listdir(self.__metafolder) == []:
-                os.rmdir(self.__metafolder)
+        if os.path.exists(self._metafolder):
+            if os.listdir(self._metafolder) == []:
+                os.rmdir(self._metafolder)
             
     def modSummary(self):
         pass
@@ -102,8 +102,8 @@ class protocol():
         #return mod.checkChanged(), mod.getFingerprint()
         
 #        isnew = False
-#        if not self.__modules.has_key(modname):
-#            self.__modules[modname].setValue(None)
+#        if not self._modules.has_key(modname):
+#            self._modules[modname].setValue(None)
 #            isnew = True
 #            haschanged = True
 #            try:
@@ -119,11 +119,11 @@ class protocol():
 #
 #        else:
 #            try:
-#                haschanged = self.__modules[modname].getFingerprint() != leafinspect.getsource(mod)
+#                haschanged = self._modules[modname].getFingerprint() != leafinspect.getsource(mod)
 #                fprint = leafinspect.getsource(mod.getValue())
 #            except Exception:
 #                dbgstr('No source code for \''+modname+'\': will store value.', 2)
-#                haschanged = self.__modules[modname].get() != mod
+#                haschanged = self._modules[modname].get() != mod
 #                fprint = mod
 #            
 #        if isnew: dbgstr('New module: ' + modname, 0)
@@ -133,12 +133,12 @@ class protocol():
 #        return haschanged, fprint
 
     def setMod(self, modname, mod):
-        haschanged = self.__modules[modname].changed()
+        haschanged = self._modules[modname].changed()
         if haschanged:
             if type(mod) == File:
                 mod.update()
-            self.__modules[modname].setValue(mod.getValue())
-            self.__modules[modname].updateFingerprint()
+            self._modules[modname].setValue(mod.getValue())
+            self._modules[modname].updateFingerprint()
             self.untrustNode(modname)
             dependents = self.getOutNodesRecursive(modname)
             if dependents != []:
@@ -147,19 +147,19 @@ class protocol():
             #    self.clearNode(dep)
 
     def setMods(self, mods):
-        self.__modules = mods
+        self._modules = mods
         for modname in mods.keys():
             self.setMod(modname, mods[modname])
         
-        dbgstr('Modules are: ' + str(self.__modules), 3)
-        #dbgstr('with source: ' + str(self.__modcontents), 3)
+        dbgstr('Modules are: ' + str(self._modules), 3)
+        #dbgstr('with source: ' + str(self._modcontents), 3)
 
         
     def update(self, graph, mods):
         dbgstr('New graph is: ' + str(graph), 3)
         dbgstr('New mods are: ' + str(mods), 3)
-        self.__graphres.setValue(graph)
-        self.__graphres.update()
+        self._graphres.setValue(graph)
+        self._graphres.update()
         self.updateModules(mods)
         
         
@@ -194,7 +194,7 @@ class protocol():
             self.getResource(resname).clearDump()
         if self.isAvailable(resname):
             dbgstr('Clearing resource: ' + str(resname))
-            self.__resmap[resname].clear()
+            self._resmap[resname].clear()
             
     def setWdir(self, wdir):
         self.wdir = wdir
@@ -213,10 +213,10 @@ class protocol():
                 
     def getResource(self, resname):
         dbgstr('Getting resource: ' + str(resname), 3)        
-        return self.__resmap[resname]
+        return self._resmap[resname]
         
     def addResource(self, name, res):
-        self.__resmap[name]=res
+        self._resmap[name]=res
             
     def provideResource(self, resname):
         dbgstr('Providing resource: ' + str(resname), 2)
@@ -228,7 +228,7 @@ class protocol():
             dbgstr('Found on disk: ' + str(resname))
             self.addResource(resname, self.loadResource(resname))
             dbgstr('Resource content is:\n' + str(self.getResource(resname)), 4)
-            return self.__resmap[-1]
+            return self._resmap[-1]
         else:
             dbgstr('Resource not found. I need to run first: ' + str(resname))
             self.runNode(resname)
@@ -278,45 +278,45 @@ class protocol():
         return self.callMod(node, nodeparams)
         
     def getModule(self, name):
-        return self.__modules[name]
+        return self._modules[name]
         
     def callMod(self, node, nodeparams):
         
-        if not hasattr(self.__modules[node].getValue(), '__call__'): #check wether it's a function
+        if not hasattr(self._modules[node].getValue(), '_call_'): #check wether it's a function
             dbgstr('Node '+node+' is not a function: passing itself.', 2)            
-            newres = self.__modules[node].getValue()
-            self.__processRawRes(node, newres)
+            newres = self._modules[node].getValue()
+            self._processRawRes(node, newres)
             
         elif len(nodeparams)==0:
             dbgstr('No input for: ' + str(node), 1)
             dbgstr('Running node: ' + node)
-            newres = apply(self.__modules[node].getValue(), [])
+            newres = apply(self._modules[node].getValue(), [])
             dbgstr('Done.')
             dbgstr('Produced resources:\n\t' + str(newres), 3)
-            self.__processRawRes(node, newres)
+            self._processRawRes(node, newres)
     
         elif self.getGraph().getAttrib(node, 'hash'):
             dbgstr('Inputs are joined.', 2)
             dbgstr('Running node: ' + node)
-            newres = apply(self.__modules[node].getValue(), nodeparams)
+            newres = apply(self._modules[node].getValue(), nodeparams)
             dbgstr('Done.', 0)
             dbgstr('Produced resources:\n\t' + str(newres), 3)
-            self.__processRawRes(node, newres)
+            self._processRawRes(node, newres)
             
         else:
             dbgstr('Inputs are hashed.', 2)
             for nodeparam in nodeparams:
                 dbgstr('Running node: ' + node)
-                newres = self.__modules[node].getValue()(nodeparam)
+                newres = self._modules[node].getValue()(nodeparam)
                 dbgstr('Done.')
                 dbgstr('Produced resources:\n\t' + str(newres), 3)
-                self.__processRawRes(node, newres)
+                self._processRawRes(node, newres)
             
         return newres
         
         
     def placeFileRes(self, fname):
-        os.system('mv "'+ fname + '" ' + self.__metafolder)
+        os.system('mv "'+ fname + '" ' + self._metafolder)
             
     def buildResName(self, inode, onode, rawres):
         if onode == None:
@@ -333,11 +333,11 @@ class protocol():
         
     def updateFilePath(self, path):
         parts = os.path.split(path)
-        if parts[0] != self.__metafolder:
-            return self.__metafolder + '/' + parts[1]
+        if parts[0] != self._metafolder:
+            return self._metafolder + '/' + parts[1]
         return path
 
-    def __processRawRes(self, node, rawres):
+    def _processRawRes(self, node, rawres):
         
 
                         
@@ -378,7 +378,7 @@ class protocol():
                 
                 
     def setDumpFolder(self,f):
-        self.__metafolder=f
+        self._metafolder=f
 
     def run(self):
         #dbgstr('Running project.', 0)
@@ -420,17 +420,17 @@ class protocol():
         else:
             fname = res[0]
             
-        dbgstr('Dump file for resource ' + str(res) + ' is ' + self.__metafolder + '/' + fname, 2)
-        return self.__metafolder + '/' + fname
+        dbgstr('Dump file for resource ' + str(res) + ' is ' + self._metafolder + '/' + fname, 2)
+        return self._metafolder + '/' + fname
 
 
     def getInNodes(self, node):
-        g = self.__reverseGraph(self.getGraph())
+        g = self._reverseGraph(self.getGraph())
         dbgstr('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 2)
         return g[node]
         
     def getOutNodes(self, node):
-        #dbgstr('out-nodes of ' + str(node) + ' are: ' + str(self.__graph[node]), 2)
+        #dbgstr('out-nodes of ' + str(node) + ' are: ' + str(self._graph[node]), 2)
         return self.getGraph()[node]
         
     def isLeaf(self, node):
@@ -470,7 +470,7 @@ class protocol():
 #        return resnames
 
 
-    def __reverseGraph(self, g):
+    def _reverseGraph(self, g):
         all_values = list()
         for item in g.values():
             for subitem in item:
@@ -491,10 +491,10 @@ class protocol():
         
         
     def setDumping(self, d):
-        self.__dodump = d
+        self._dodump = d
                 
     def getGraph(self):
-        return self.__graphres.getValue()
+        return self._graphres.getValue()
         
     def resSummary(self):
         dbgstr('Active resources:', -1)
@@ -508,23 +508,23 @@ class protocol():
             dbgstr(mystr,-1)
         
 #    def updateFiles(self):
-#        for res in self.__modmap:
+#        for res in self._modmap:
 #            if res.isFile():
 #                if res.Value().hasChanged():
 #                    dbgstr('File resource '+str(res)+ ' has changed.')
                                     
-    def __setMod(self, who, what):
-        self.__modcontents[who.getName()] = self.getContents(what)
+    def _setMod(self, who, what):
+        self._modcontents[who.getName()] = self.getContents(what)
         self.dumpMods()
         
-#    def __setRes(self, who, what):
-#        self.__resmap[self.__resmap.index(who)]=what
+#    def _setRes(self, who, what):
+#        self._resmap[self._resmap.index(who)]=what
 #        self.dumpResource(who)
                         
     def trust(self, who, what):
         if type(who) == str:
             dbgstr('I\'m assuming that using ' + str(what) + ' for ' + who + ' won\'t have consequences on other nodes.', 0)
-            self.__setMod(who,what)
+            self._setMod(who,what)
         elif type(who) == tuple:
             dbgstr('I\'m assuming that using your object of type ' + str(type(what)) + ' for ' + str(who) + ' won\'t have consequences on other nodes.', 0)
             self.addResource(who,what)
@@ -539,19 +539,19 @@ class protocol():
         return mods
         
     def setMetaFolder(self, f):
-        self.__metafolder = f
+        self._metafolder = f
 
 
     def getresmap(self):
-        return self.__resmap
+        return self._resmap
         
                     
-    __resmap = dict()
-    __graphres = None
-    __metafolder = 'leafmeta'
-    __leafprot = ''
-    __dodump = True
-    __modules = dict()
+    _resmap = dict()
+    _graphres = None
+    _metafolder = 'leafmeta'
+    _leafprot = ''
+    _dodump = True
+    _modules = dict()
 
 
 

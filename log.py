@@ -17,13 +17,13 @@ filopt['showStackLevel'] = True
 filopt['showIndent'] = True
 filopt['showTime'] = True
 filopt['showCaller'] = True
-filopt['showCallerStack'] = True
+filopt['showCallerStack'] = False
 
 stdopt['verbosity'] = 1
 stdopt['showStackLevel'] = False
 stdopt['showIndent'] = False
 stdopt['showTime'] = False
-stdopt['showCaller'] = True
+stdopt['showCaller'] = False
 stdopt['showCallerStack'] = False
 
 
@@ -36,7 +36,8 @@ logfile = None
 from inspect import stack
 
 def colorize(txt):
-    return '\033[' + termcolor +'m'+ txt + '\033[0m'
+    return txt
+    #return '\033[' + termcolor +'m'+ txt + '\033[0m'
     
 def insertBreak():
     global filopt
@@ -49,15 +50,15 @@ def insertBreak():
     print
         
 def makeLogString(string, logopt, caller, callerStack, curr_lev):
-    outstr = ''
+    outstr = '[L'
     if logopt['showStackLevel']:
         outstr += str(curr_lev)
     if logopt['showIndent']:
         outstr += '   ' * curr_lev
     if logopt['showCaller'] or logopt['showTime']:
-        outstr += '['
+        outstr += ' '
     if logopt['showTime']:
-        outstr += str(datetime.today())[0:-7]
+        outstr += str(datetime.today())[11:-7]
     if logopt['showCaller']:
         if logopt['showTime']:
             outstr += ', '
@@ -65,8 +66,8 @@ def makeLogString(string, logopt, caller, callerStack, curr_lev):
             outstr += callerStack
         else:
             outstr += caller
-    if logopt['showCaller'] or logopt['showTime']:
-        outstr += ']'
+    #if logopt['showCaller'] or logopt['showTime']:
+    outstr += ']'
 
 
     if string == '':
