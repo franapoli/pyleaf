@@ -161,7 +161,9 @@ class protocol():
         self._graphres.setValue(graph)
         self._graphres.update()
         self.updateModules(mods)
-        
+
+    def getInputNames(self, node):
+        dbgstr(str(self._graphres.getValue().getInNodes(node)))
         
     def dumpResource(self, res):
         self.getResource(res).dump()
@@ -180,8 +182,8 @@ class protocol():
             self.clearResource(node)
 
     def untrustNode(self, nodename):
-        if self.isLeaf(nodename):
-            self.clearResource(nodename)
+        #if self.isLeaf(nodename):
+        self.clearResource(nodename)
                 
         dependents = self.getOutNodesRecursive(nodename)
         for res in self.getResNames():
@@ -362,7 +364,6 @@ class protocol():
 #        else:
 
         if self.isFileMod(node):
-            import pdb; pdb.set_trace()
             if type(rawres)==tuple or type(rawres)==list:
                 for rawresi in rawres:
                     newresname = self.buildResName(node, None, rawresi)

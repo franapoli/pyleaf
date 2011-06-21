@@ -95,7 +95,15 @@ class project():
     def generateAltPaths(self):
         ngroups = self.getNodeGroups()
         temp = list()
-        [temp.append(t[0]) for t in self.combinations(*(ngroups.values()))]
+        combs = self.combinations(*(ngroups.values()))
+        # the following includes ugly patches because it's safer than
+        # changing self.combinations, which is cryptic. Best solution
+        # is still to change combinations.
+        for t in combs:
+            if len(t)>0:
+                temp.append(t[0])
+            else:
+                temp.append(t)
         return temp
         
     def guessLeafProt(self):

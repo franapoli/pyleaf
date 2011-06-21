@@ -12,7 +12,7 @@ class graph(dict):
 
     def getInNodes(self, node):        
         g = self.__reverseDict()
-        log.write('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 2)
+        log.send('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 2)
         return g[node]
         
     def getOutNodes(self, node):
@@ -122,10 +122,11 @@ rankdir=LR;
             if not(value in self.keys()):
                 self[value]=[]
     
+        for key in self.keys():
+            self[key] = sorted(self[key])
 
         os.remove('leafprot.lf.dot')
         log.send('Graph is: ' + str(self), 2)        
-
 
         
     __nodeattribs = dict()
