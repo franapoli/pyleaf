@@ -56,6 +56,10 @@ rankdir=LR;
         for value in g.keys():
             if not(value in rg.keys()):
                 rg[value]=[]
+
+        for key in rg.keys():
+            rg[key]=sorted(rg[key])
+
         return rg
 
     def getAttrib(self, node, attr):

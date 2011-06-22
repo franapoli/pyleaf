@@ -270,8 +270,12 @@ class protocol():
                 nodeparams.append(thisnode_inputs)
         
         #sorting basing on ids        
-        ids = [self.getGraph().getAttrib(_node, 'id') for _node in input_nodes]
-        nodeparams=[one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
+        #ids = [self.getGraph().getAttrib(_node, 'id') for _node in input_nodes]
+        #nodeparams=[one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
+
+        #sorting basing on alphabetic order of module name
+        nodeparams=[one for (one,two) in sorted(zip(nodeparams, input_nodes), key = lambda x:x[1])]
+        
 
         dbgstr('Ready to run: ' + node, 2)
         dbgstr('through ' + str(self.getModule(node).getValue()), 2)
@@ -321,7 +325,8 @@ class protocol():
         return type(lambda y:y)==type(x)
         
     def placeFileRes(self, fname):
-        os.system('mv -r"'+ fname + '" ' + self._metafolder)
+        if self._auto_place_files:
+            os.system('mv -r"'+ fname + '" ' + self._metafolder)
             
     def buildResName(self, inode, onode, rawres):
         if onode == None:
@@ -346,39 +351,42 @@ class protocol():
         
 
                         
-#        elif type(rawres)==tuple:        
-#            dbgstr('Raw resources are packed in a tuple.')
-#            
-#            if len(rawres != len(self.getGraph()[node])):
-#                raise NameError('When a module returns a tuple, it''s length must be equal to the number of the module''s outputs.')
-#                
-#            for idx, outnode in enumerate(self.getGraph()[node]):
-#                newresname = self.buildResName(node, outnode, rawres)                
-#                dbgstr('Requesting add resource: ' + str(newresname))
-#                if self.isFileMod(node):
-#                    self.placeFileRes(rawres)
-#                    self.newResource(newresname, self.updateFilePath(rawres[idx]))
-#                else:
-#                    self.newResource(newresname, rawres[idx])
-#                
-#        else:
+# #        elif type(rawres)==tuple:        
+# #            dbgstr('Raw resources are packed in a tuple.')
+# #            
+# #            if len(rawres != len(self.getGraph()[node])):
+# #                raise NameError('When a module returns a tuple, it''s length must be equal to the number of the module''s outputs.')
+# #                
+# #            for idx, outnode in enumerate(self.getGraph()[node]):
+# #                newresname = self.buildResName(node, outnode, rawres)                
+# #                dbgstr('Requesting add resource: ' + str(newresname))
+# #                if self.isFileMod(node):
+# #                    self.placeFileRes(rawres)
+# #                    self.newResource(newresname, self.updateFilePath(rawres[idx]))
+# #                else:
+# #                    self.newResource(newresname, rawres[idx])
+# #                
+# #        else:
 
-        if self.isFileMod(node):
-            if type(rawres)==tuple or type(rawres)==list:
-                for rawresi in rawres:
-                    newresname = self.buildResName(node, None, rawresi)
-                    dbgstr('Requesting add resource: ' + node, 2)
-                    self.placeFileRes(rawresi)
-                    self.newResource(newresname, self.updateFilePath(rawresi))
-            else:
-                newresname = self.buildResName(node, None, rawres)
-                dbgstr('Requesting add resource: ' + node, 2)
-                self.placeFileRes(rawres)
-                self.newResource(newresname, self.updateFilePath(rawres))
-        else:
-            newresname = self.buildResName(node, None, rawres)
-            dbgstr('Requesting add resource: ' + node, 2)
-            self.newResource(newresname, rawres)
+        # if self.isFileMod(node):
+        #     if type(rawres)==tuple or type(rawres)==list:
+        #         for rawresi in rawres:
+        #             newresname = self.buildResName(node, None, rawresi)
+        #             dbgstr('Requesting add resource: ' + node, 2)
+        #             self.placeFileRes(rawresi)
+        #             self.newResource(newresname, self.updateFilePath(rawresi))
+        #     else:
+        #         newresname = self.buildResName(node, None, rawres)
+        #         dbgstr('Requesting add resource: ' + node, 2)
+        #         self.placeFileRes(rawres)
+        #         self.newResource(newresname, self.updateFilePath(rawres))
+        # else:
+        #     newresname = self.buildResName(node, None, rawres)
+        #     dbgstr('Requesting add resource: ' + node, 2)
+        #     self.newResource(newresname, rawres)
+        newresname = self.buildResName(node, None, rawres)
+        dbgstr('Requesting add resource: ' + node, 2)
+        self.newResource(newresname, rawres)
                 
                 
                 
@@ -557,7 +565,7 @@ class protocol():
     _leafprot = ''
     _dodump = True
     _modules = dict()
-
+    _auto_place_files = False
 
 
 
