@@ -45,6 +45,8 @@ class project():
             #NOOOOOOOOOOO: use like protocol.set_folder
             self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
             self.protocols[gname].getGraph().toPdf(altfolder+'/graph.dot')
+
+        self.protocol = self.protocols[self.protocols.keys()[0]]
             #if not os.path.exists('wdir'):
             #    os.mkdir('wdir')
             #if not os.path.exists('wdir/' + gname):
@@ -76,7 +78,7 @@ class project():
        yield []
        
     def altPathToName(self, path):
-        return str(path)
+        return str(path).strip('[]')
 
     def generateAltGraphs(self):
         altpaths = self.generateAltPaths()
@@ -132,6 +134,7 @@ class project():
 
         for (name, value) in leafinspect.getmembers(self._usermodule):
             hislocals[name] = value
+
         return hislocals
         
     def getModNames(self):
@@ -200,6 +203,7 @@ class project():
         return fname
 
     protocols = dict()
+    protocol = ''
     _graph = graph()
     _name = ''
     _metafolder = ''

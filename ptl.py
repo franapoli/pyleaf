@@ -10,6 +10,7 @@ import leafinspect
 from leaf.log import send as dbgstr
 from leaf.rrc import resource
 import copy
+import inspect
         
     
 
@@ -39,12 +40,14 @@ class protocol():
         self.updateModules(mods)
 
 
+
     def updateModules(self, mods):
         for modname in mods:
             if modname in self._modules.keys():
                 self._modules[modname].setValue(mods[modname])
                 if self._modules[modname].changed():
                     self.untrustNode(self._modules[modname].name())
+                    self._modhelp[modname] = inspect.getdoc(self._modules[modname].getValue())
                 self._modules[modname].update()
             else:
                 dbgstr('New module: ' + modname)
@@ -55,7 +58,7 @@ class protocol():
                 
 
     def manageGraphChange(self):
-        dbgstr('Graph changed or not dumped, but I still can''t handle that, sorry.')
+        dbgstr('Graph changed or not dumped, but I still can\'t handle that, sorry.')
     
     def show(self):
         dbgstr('Protocol:',0)
@@ -550,6 +553,30 @@ class protocol():
         
         dbgstr('Found on disk: ' + str(mods.keys()), 2)
         return mods
+
+    def exportToPdf(self):
+        ofile = self._metafolder+'/temp'
+        f=open(ofile, 'w')
+        f.write(r"""digraph G {
+node [shape=box, style=rounded];
+rankdir=LR;
+""")
+        for idx, node in enumerate(self.getGraph().getNodes()):
+            f.write(str(node))
+            #import pdb; pdb.set_trace()
+            docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
+            f.write('[label = <<table border="0"><tr><td><b>' +
+                    node +
+                    '</b></td></tr><tr><td align = "left"><font POINT-SIZE="10">'+
+                    ('-' if docstr == None else docstr) +
+                    '</font></td></tr></table>>]\n')
+        for node in self.getGraph().keys():
+            for onode in self.getGraph()[node]:
+                f.write(node + ' -> ' + onode + '\n')
+        f.write('}')
+        f.close()
+        os.system('dot -Tpdf -o' + ofile + '.pdf ' + ofile)
+
         
     def setMetaFolder(self, f):
         self._metafolder = f
@@ -565,7 +592,5 @@ class protocol():
     _leafprot = ''
     _dodump = True
     _modules = dict()
+    _modhelp = dict()
     _auto_place_files = False
-
-
-

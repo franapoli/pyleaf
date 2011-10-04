@@ -90,6 +90,7 @@ class resource():
         return self._path
         
     def changed(self):
+
         return self._fingerprint != self._makeFingerprint(self._contents)
         
     def _makeFingerprint(self, obj):
@@ -117,7 +118,7 @@ class resource():
 
     _name = ''    
     _contents = None
-    _dodump = False
+    _dodump = True
     _fingerprint = None
     _path = None
     _isfile = False
