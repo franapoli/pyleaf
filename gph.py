@@ -2,6 +2,7 @@ import re
 import os
 import log
 
+
 class graph(dict):
     def getNodes(self):
         nodes = self.keys()

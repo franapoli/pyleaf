@@ -554,21 +554,22 @@ class protocol():
         dbgstr('Found on disk: ' + str(mods.keys()), 2)
         return mods
 
-    def exportToPdf(self):
-        ofile = self._metafolder+'/temp'
+    def exportToPdf(self, ofile, layout='LR'):
+        import textwrap
+        ofile = self._metafolder+'/'+ofile
         f=open(ofile, 'w')
-        f.write(r"""digraph G {
-node [shape=box, style=rounded];
-rankdir=LR;
-""")
+        f.write('digraph G {'+
+                'node [shape=box, style=rounded];'+
+                'rankdir='+
+                ('TB' if layout.lower()=='TB' else 'LR')+
+                ';')
         for idx, node in enumerate(self.getGraph().getNodes()):
             f.write(str(node))
-            #import pdb; pdb.set_trace()
             docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
-            f.write('[label = <<table border="0"><tr><td><b>' +
+            f.write('[label = <<table border="0"><tr><td><B>' +
                     node +
-                    '</b></td></tr><tr><td align = "left"><font POINT-SIZE="10">'+
-                    ('-' if docstr == None else docstr) +
+                    '</B></td></tr><tr><td align = "left"><font POINT-SIZE="10">'+
+                   ('-' if docstr == None else  textwrap.fill(docstr, 30)).replace('\n','<br/>') +
                     '</font></td></tr></table>>]\n')
         for node in self.getGraph().keys():
             for onode in self.getGraph()[node]:
