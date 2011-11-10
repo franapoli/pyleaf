@@ -12,29 +12,29 @@ import copy
 
 
 class project():
-    def __init__(self, module, leafprot = ''):
-        self._modulename = module
-        
-        self._metafolder = 'leaf_' + module        
+    """Leaf Project. Creates Leaf protocols."""
+    
+    def __init__(self, modulename, leafprot = ''):
+        self._modulename = modulename        
+        self._metafolder = 'leaf_' + modulename        
         if not os.path.exists(self._metafolder):
             os.mkdir(self._metafolder)
-        self.updateGraphs(leafprot)
+        self._updateGraphs(leafprot)
+                        
             
-            
-            
-    def updateGraphs(self, leafprot):
+    def _updateGraphs(self, leafprot):
         #this is really an initGraphs
         #to be fixed
         if leafprot == '':
-            leafprot = self.guessLeafProt()
+            leafprot = self._guessLeafProt()
 
         if leafprot != self._leafprot:
             self._graph.fromLeaf(leafprot)
             self._leafprot=leafprot
         
-        mods = self.seekforMods()
+        mods = self._seekforMods()
 
-        altgraphs = self.generateAltGraphs()
+        altgraphs = self._generateAltGraphs()
         for gname in altgraphs.keys():
             if str(gname) != '[]':
                 altfolder = self._metafolder+'/'+str(gname).strip('[]').replace(', ','').replace('\'', '')
@@ -44,7 +44,7 @@ class project():
                 os.mkdir(altfolder)
             #NOOOOOOOOOOO: use like protocol.set_folder
             self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
-            self.protocols[gname].getGraph().toPdf(altfolder+'/graph.dot')
+            self.protocols[gname]._getGraph().toPdf(altfolder+'/graph.dot')
 
         self.protocol = self.protocols[self.protocols.keys()[0]]
             #if not os.path.exists('wdir'):
@@ -53,11 +53,8 @@ class project():
             #    os.mkdir('wdir/'+gname)
             #self.protocols[gname].setWdir('wdir/'+gname)
 
-            
-    def Name(self):
-        return
-                            
-    def getNodeGroups(self):
+                                        
+    def _getNodeGroups(self):
         nodegroups = dict()
         for node in self._graph.getNodes():
             gid = self._graph.getAttrib(node, 'group')
@@ -69,38 +66,38 @@ class project():
         return nodegroups
         
 
-    def combinations(self, *iterables):
+    def _combinations(self, *iterables):
      if iterables:
        for head in iterables[0]:
-         for remainder in self.combinations(*iterables[1:]):
+         for remainder in self._combinations(*iterables[1:]):
            yield [head] + remainder
      else:
        yield []
        
-    def altPathToName(self, path):
+    def _altPathToName(self, path):
         return str(path).strip('[]')
 
-    def generateAltGraphs(self):
-        altpaths = self.generateAltPaths()
-        groups = self.getNodeGroups().values()
+    def _generateAltGraphs(self):
+        altpaths = self._generateAltPaths()
+        groups = self._getNodeGroups().values()
         for path in altpaths:
-            self._altgraphs[self.altPathToName(path)] = copy.deepcopy(self._graph)
+            self._altgraphs[self._altPathToName(path)] = copy.deepcopy(self._graph)
             for group in groups:
                 for node in group:
                     if node not in path:
-                        self._altgraphs[self.altPathToName(path)].delNode(node)
-            log.send('Alternative protocol ' + self.altPathToName(path) +
-                ' is: ' + str(self._altgraphs[self.altPathToName(path)]), 2)
+                        self._altgraphs[self._altPathToName(path)].delNode(node)
+            log.send('Alternative protocol ' + self._altPathToName(path) +
+                ' is: ' + str(self._altgraphs[self._altPathToName(path)]), 2)
                         
         return self._altgraphs
 
-    def generateAltPaths(self):
-        ngroups = self.getNodeGroups()
+    def _generateAltPaths(self):
+        ngroups = self._getNodeGroups()
         temp = list()
-        combs = self.combinations(*(ngroups.values()))
+        combs = self._combinations(*(ngroups.values()))
         # the following includes ugly patches because it's safer than
-        # changing self.combinations, which is cryptic. Best solution
-        # is still to change combinations.
+        # changing self._combinations, which is cryptic. Best solution
+        # is still to change _combinations.
         for t in combs:
             if len(t)>0:
                 temp.append(t[0])
@@ -108,8 +105,8 @@ class project():
                 temp.append(t)
         return temp
         
-    def guessLeafProt(self):
-        hislocals = self.getUserLocals()
+    def _guessLeafProt(self):
+        hislocals = self._getUserLocals()
         hisnames = hislocals.keys()
         
         if 'leafProtocol' in hisnames:
@@ -119,7 +116,7 @@ class project():
             raise NameError('I couldn''t find a variable called leafProtocol')
 
 
-    def getUserLocals(self):
+    def _getUserLocals(self):
         import sys
         if self._modulename in sys.modules.keys():
             self._usermodule = sys.modules[self._modulename]
@@ -137,18 +134,18 @@ class project():
 
         return hislocals
         
-    def getModNames(self):
+    def _listFilters(self):
         names = self._graph.getNodes()
         log.send('Mod names are: ' + str(names), 3)
         return names
                 
         
-    def seekforMods(self):
+    def _seekforMods(self):
         log.send('Looking for mods in user module.', 3)
-        hislocals=self.getUserLocals()
+        hislocals=self._getUserLocals()
 
         mymods=dict()
-        for modname in self.getModNames():
+        for modname in self._listFilters():
             if modname in hislocals.keys():
                 mymods[modname] = hislocals[modname]
             else:
@@ -161,9 +158,9 @@ class project():
         return mymods
         
     def update(self):
-        #self.updateGraphs(self._leafprot)
+        #self._updateGraphs(self._leafprot)
         for prot in self.protocols.values():
-            prot.update(prot.getGraph(), self.seekforMods())
+            prot.update(prot.getGraph(), self._seekforMods())
             
     def run(self):
         for protname in self.protocols.keys():
@@ -172,12 +169,12 @@ class project():
             self.protocols[protname].run()
 
             
-    def listAltProtocols(self):
+    def listProtocols(self):
         for protname in self.protocols:
             log.send('- ' + protname, 0)            
             log.send('  ' + str(self.protocols[protname].getGraph()))
             
-    def getAltProtocol(self, protname):
+    def getProtocol(self, protname):
         return self.protocols[protname]
         
             
@@ -190,17 +187,14 @@ class project():
                 resdict[protname] = self.protocols[protname].provide(what)
             return resdict
             
-    def getInputs(self, node):
-        if len(self.protocols)==1:
-            return self.protocols[self.protocols.keys()[0]].getInputs(node)
-        else:
-            resdict = dict()
-            for protname in self.protocols:
-                resdict[protname] = self.protocols[protname].getInputs(node)
-            return resdict
+    def getinputs(self, node):
+        resdict = dict()
+        for protname in self.protocols:
+            resdict[protname] = self.protocols[protname].getinputs(node)
+        return resdict
             
-    def newFile(self, fname):
-        return fname
+#    def newFile(self, fname):
+#        return fname
 
     protocols = dict()
     protocol = ''
