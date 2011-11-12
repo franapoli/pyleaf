@@ -30,7 +30,7 @@ class protocol():
         self._graphres = resource('graph', folder+'/graph.grp')
         self._graphres.setValue(graph)
         if self._graphres.changed():
-            self._manageGraphChange()
+            self._manageGraphChange(self._graphres.getFingerprint())
         self._graphres.update()
 
         for res in self._getResNames():
@@ -57,6 +57,14 @@ class protocol():
 #                    ostr += str(attrib[1])+'='+str(self._nodeattribs[attrib])+', '
 #            dbgstr(ostr[0:-2], 0)
         
+    def _update(self, graph, mods):
+        dbgstr('New graph is: ' + str(graph), 3)
+        dbgstr('New mods are: ' + str(mods), 3)
+        self._manageGraphChange(graph)
+        self._graphres.setValue(graph)
+        self._graphres.update()
+        self._updateModules(mods)
+
     def undumpall(self):
         """Deletes all dumped resources"""
         for res in self._getResNames():
@@ -100,7 +108,7 @@ class protocol():
                 self.clear(res)
 
     def clear(self, filtername):
-        """Clears and undumps resource.""" 
+        """Clears and undumps a resource.""" 
         if self._isDumped(filtername):
             dbgstr('Clearing dump: ' + str(filtername), 2)
             self._getResource(filtername).clearDump()
@@ -109,7 +117,11 @@ class protocol():
             self._resmap[filtername].clear()
 
     def provide(self, resname):
-        """Provides a resource."""
+        """Provides a resource.
+        
+        The resource is returned if available, loaded from disk if dumped, produced
+        on the fly otherwise.
+        """
         if type(resname) != 'str':
             resname = resname.__name__
         return self._provideResource(resname).getValue()
@@ -189,8 +201,19 @@ class protocol():
                 self._modules[modname].update()                
                 
 
-    def _manageGraphChange(self):
-        dbgstr('Graph changed or not dumped, but I still can\'t handle that, sorry.')
+    def _manageGraphChange(self, newGraph):
+        #checking for change in graph structure
+        #a node is untrusted if its inputs have changed
+        oldg = self._graphres.getValue()
+
+        for node in newGraph.getNodes():
+            if node in oldg.getNodes():
+                innodes1 = newGraph.getInNodes(node)
+                innodes2 = oldg.getInNodes(node)
+                for inNode in innodes1:
+                    if not inNode in innodes2:
+                        dbgstr('Inputs to ' + node + 'have changed, untrusting it.')
+
     
             
 #    def modSummary(self):

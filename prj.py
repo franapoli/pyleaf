@@ -12,41 +12,86 @@ import copy
 
 
 class project():
-    """Leaf Project. Creates Leaf protocols."""
+    """Leaf Project: creates Leaf protocols binding an LGL graph to Python functions.    
+    This class creates Leaf projects by calling the LGL compiler to build a graph
+    object, than binds node names to python functions. The python functions must be
+    defined inside a module whose name is passed to the leaf.project constructor.
+    """
     
     def __init__(self, modulename, leafprot = ''):
         self._modulename = modulename        
         self._metafolder = 'leaf_' + modulename        
         if not os.path.exists(self._metafolder):
             os.mkdir(self._metafolder)
-        self._updateGraphs(leafprot)
+        self._leafProtName=leafprot
+        self._initGraphs(self._seekforProt(leafprot))
+
+
+    def _seekforProt(self, gname):
+        #extracts a variable with the given name from
+        #the user module: it must contain the leaf protocol
+        log.send('Looking for protocol in user module.', 3)
+        hislocals=self._getUserLocals()
+
+        if gname in hislocals.keys():
+            return  hislocals[gname]
+        else:
+            raise NameError('I couldn''t bind '+gname+' to any of your defined objects.')
+        
+
+    def _updateGraphs(self, leafprot):
+        if leafprot != self._leafProtName:
+            newGraph = graph()
+            newGraph.fromLeaf(leafprot)
+
+            #TODO: the following includes stuff copy-pasted
+            #from _initGraphs. Should be restructured.
+            self._graph = newGraph
+
+            altgraphs = self._generateAltGraphs()
+            mods = self._seekforMods()
+            
+            #import pdb; pdb.set_trace()
+
+            for gname in altgraphs.keys():
+                if str(gname) != '':
+                    altfolder = os.path.join(self._metafolder,
+                                             str(gname).strip('[]').replace(', ','').replace('\'', ''))
+                else:
+                    altfolder = self._metafolder.strip('[]').replace(', ','').replace('\'', '')
+                if not os.path.exists(altfolder):
+                    os.mkdir(altfolder)
+                
+                #self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
+                self.protocols[gname]._setMetaFolder(altfolder)
+                g = self.protocols[gname]._getGraph()
+                g.toPdf(altfolder+'/graph.dot')
+                self.protocols[gname]._update(altgraphs[gname], mods)
+
+
                         
             
-    def _updateGraphs(self, leafprot):
-        #this is really an initGraphs
-        #to be fixed
+    def _initGraphs(self, leafprot):
         if leafprot == '':
             leafprot = self._guessLeafProt()
 
-        if leafprot != self._leafprot:
+        if leafprot != self._leafProtName:
             self._graph.fromLeaf(leafprot)
-            self._leafprot=leafprot
         
         mods = self._seekforMods()
 
         altgraphs = self._generateAltGraphs()
         for gname in altgraphs.keys():
-            if str(gname) != '[]':
-                altfolder = self._metafolder+'/'+str(gname).strip('[]').replace(', ','').replace('\'', '')
+            if str(gname) != '':
+                altfolder = os.path.join(self._metafolder,
+                                         str(gname).strip('[]').replace(', ','').replace('\'', ''))
             else:
                 altfolder = self._metafolder.strip('[]').replace(', ','').replace('\'', '')
             if not os.path.exists(altfolder):
                 os.mkdir(altfolder)
-            #NOOOOOOOOOOO: use like protocol.set_folder
+
             self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
             self.protocols[gname]._getGraph().toPdf(altfolder+'/graph.dot')
-
-        self.protocol = self.protocols[self.protocols.keys()[0]]
             #if not os.path.exists('wdir'):
             #    os.mkdir('wdir')
             #if not os.path.exists('wdir/' + gname):
@@ -158,49 +203,57 @@ class project():
         return mymods
         
     def update(self):
-        #self._updateGraphs(self._leafprot)
-        for prot in self.protocols.values():
-            prot.update(prot.getGraph(), self._seekforMods())
+        """Updates all protocols internals to keep coherency after changes.
+
+        If the source code of a filter has changed, the new code is retrieved and the
+        filter is untrusted.
+        If the protocol graph has changed, all filters whose set of input filters has
+        changed are untrusted.
+
+        Function has no return value.
+        """
+        gname = self._seekforProt(self._leafProtName)        
+        self._updateGraphs(gname)
             
     def run(self):
+        """Calls run on all protocols of the project."""
         for protname in self.protocols.keys():
             log.insertBreak()
             log.send('Running instance: ' + protname)
             self.protocols[protname].run()
-
             
     def listProtocols(self):
+        """Lists the names of all the protocols of the project."""
         for protname in self.protocols:
             log.send('- ' + protname, 0)            
-            log.send('  ' + str(self.protocols[protname].getGraph()))
+            log.send('  ' + str(self.protocols[protname]._getGraph()))
             
-    def getProtocol(self, protname):
-        return self.protocols[protname]
+    # def getProtocol(self, protname):
+    #     return self.protocols[protname]
         
             
-    def provide(self, what):
-        if len(self.protocols)==1:
-            return self.protocols[self.protocols.keys()[0]].provide(what)
-        else:
-            resdict = dict()
-            for protname in self.protocols:
-                resdict[protname] = self.protocols[protname].provide(what)
-            return resdict
+    # def provide(self, what):
+    #     if len(self.protocols)==1:
+    #         return self.protocols[self.protocols.keys()[0]].provide(what)
+    #     else:
+    #         resdict = dict()
+    #         for protname in self.protocols:
+    #             resdict[protname] = self.protocols[protname].provide(what)
+    #         return resdict
             
-    def getinputs(self, node):
-        resdict = dict()
-        for protname in self.protocols:
-            resdict[protname] = self.protocols[protname].getinputs(node)
-        return resdict
+    # def getinputs(self, node):
+    #     resdict = dict()
+    #     for protname in self.protocols:
+    #         resdict[protname] = self.protocols[protname].getinputs(node)
+    #     return resdict
             
 #    def newFile(self, fname):
 #        return fname
 
     protocols = dict()
-    protocol = ''
     _graph = graph()
     _name = ''
     _metafolder = ''
-    _leafprot = ''
+    _leafProtName = ''
     _altgraphs = dict()
     _is_first_import = True

@@ -58,9 +58,10 @@ class resource():
             log.send('Dumping is switched off, so skipping.', 2)
             return
             
-        log.send('Dumping resource: ' + str(self))
-        log.send('with value: ' + str(self._contents), 3)
-        log.send('and fingerprint: ' + str(self._fingerprint), 3)
+        log.send('Dumping resource: ' + self._name)
+        log.send('object: ' + str(self), 3)
+        log.send('value: ' + str(self._contents), 3)
+        log.send('fingerprint: ' + str(self._fingerprint), 3)
 
         log.send('Dumping to file: ' + self._path, 2)
         cPickle.dump(self, open(self._path, 'w'))
