@@ -109,6 +109,9 @@ class protocol():
 
     def clear(self, filtername):
         """Clears and undumps a resource.""" 
+        if type(filtername) != 'str':
+            filtername = filtername.__name__
+
         if self._isDumped(filtername):
             dbgstr('Clearing dump: ' + str(filtername), 2)
             self._getResource(filtername).clearDump()
