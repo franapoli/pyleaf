@@ -109,7 +109,7 @@ class protocol():
 
     def clear(self, filtername):
         """Clears and undumps a resource.""" 
-        if type(filtername) != 'str':
+        if type(filtername) != str:
             filtername = filtername.__name__
 
         if self._isDumped(filtername):
@@ -125,7 +125,7 @@ class protocol():
         The resource is returned if available, loaded from disk if dumped, produced
         on the fly otherwise.
         """
-        if type(resname) != 'str':
+        if type(resname) != str:
             resname = resname.__name__
         return self._provideResource(resname).getValue()
             
