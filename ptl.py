@@ -128,6 +128,11 @@ class protocol():
         if type(resname) != str:
             resname = resname.__name__
         return self._provideResource(resname).getValue()
+
+    def rebuild(self, resname):
+        """Clears a resource, then provides it."""
+        self.clear(resname)
+        self.provide(resname)
             
     def dumpOn(self):
         """Switches dumping ON."""
