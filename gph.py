@@ -91,9 +91,6 @@ rankdir=LR;
         t=os.system('leaf ' + 'leafprot.lf')
         if t!=0:
             raise NameError('Problems parsing protocol, check syntax.')
-        t=os.system('dot -Tpdf leafprot.lf.dot -otemp.pdf')
-        if t!=0:
-            raise NameError('Problems running dot: have you installed it?')
                                 
         a = open('leafprot.lf.dot','r').read()
         edges = re.findall(r'\d+->\d+', a)

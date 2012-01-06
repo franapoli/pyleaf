@@ -167,30 +167,109 @@ class protocol():
             mystr += '\n'
         print mystr
         
-    def export(self, ofile, layout='LR'):
+    def publish(self, ofile, layout='LR'):
         """Exports the protocol to a pdf file."""
         import textwrap
-        ofile = self._metafolder+'/'+ofile
-        f=open(ofile, 'w')
-        f.write('digraph G {'+
+        import os.path
+        oname = ofile
+        ofile = os.path.join(self._metafolder, ofile)
+        f=open(ofile+'.dot', 'w')
+        f.write('digraph G {\n'+
+                'graph [size="20, 20"];\n' +
                 'node [shape=box, style=rounded];'+
                 'rankdir='+
-                ('TB' if layout.lower()=='TB' else 'LR')+
-                ';')
+                ('TB' if layout.lower()=='tb' else 'LR')+
+                ';\n')
         for idx, node in enumerate(self._getGraph().getNodes()):
             f.write(str(node))
             docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
-            f.write('[label = <<table border="0"><tr><td><B>' +
-                    node +
-                    '</B></td></tr><tr><td align = "left"><font POINT-SIZE="10">'+
+            f.write('[label = <<table border="0">\n'+
+                    '\t<tr>\n'+
+                    '\t\t<td colspan="2"><B>' + node + '</B></td>\n'+
+                    '\t</tr>\n'+
+                    '\t<tr>\n'+
+                    '\t\t<td colspan="2" align = "left"><font POINT-SIZE="10">'+
                    ('-' if docstr == None else  textwrap.fill(docstr, 30)).replace('\n','<br/>') +
-                    '</font></td></tr></table>>]\n')
+                    '</font></td>\n'+
+                    '\t</tr>\n' +
+                    '\t<tr>\n'+
+                    '\t\t<td href="#'+node+'_details"><font POINT-SIZE="10"><u>details</u></font></td>\n'+
+                    '\t\t<td href="#'+node+'_output"><font POINT-SIZE="10"><u>output</u></font></td>\n'+
+                    '\t</tr>\n'+
+                    '</table>>]\n')
         for node in self._getGraph().keys():
             for onode in self._getGraph()[node]:
                 f.write(node + ' -> ' + onode + '\n')
         f.write('}')
         f.close()
-        os.system('dot -Tpdf -o' + ofile + '.export ' + ofile)
+        t=os.system('dot -s160 -Tcmapx -o' + ofile + '.map -Tgif -o' + ofile + '.gif ' + ofile + '.dot')
+        if t!=0:
+            raise NameError('Problems running dot: have you installed it?')
+
+
+
+
+
+        html_header = """
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>""" + oname + """</title>
+<meta http-equiv="Content-Language" content="English" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+
+<div id="wrap">
+<div id="top"></div>
+<div id="content">
+
+<div class="header">
+<a href="index.html"><img src="leaf.png"></a>
+<br><br><br><br><br>
+</div>	
+
+"""
+
+        html_footer = """
+</body>
+</html>
+"""
+
+
+        f = open(ofile+'.html', 'w')
+        f.write(html_header)
+        f.write('<div class="breadcrumbs"><h1>' + oname + '</h1></div><div class="middle">')
+        f.write('<h2>Protocol map</h2>')
+        f.write('<IMG SRC="' + oname + '.gif" USEMAP="#G" />\n')
+        map = open(ofile + '.map').read()
+        f.write(map)
+
+        f.write('<h2>Modules'' details<h2>\n')
+
+        for idx, node in enumerate(self._getGraph().getNodes()):
+            f.write('<h3><a name="'+str(node)+'_details">'+str(node)+'</a></h3>\n')
+            docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
+            if docstr == None:
+                f.write('[code not available]')
+            else:
+                f.write(docstr)
+
+            f.write('<div class="code"><pre>')
+            srccode = inspect.getsource(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
+            f.write(srccode.replace('\n','<br>'))
+            f.write('</pre></div>')
+            f.write('<hr>')
+
+        import time
+
+        f.write('<div id="footer">')
+        f.write('<br><br><i>Automatically generated on ' + time.asctime() +  ' using Leaf</i>')
+        f.write('</div>')
+        f.write(html_footer)
+
+
 
 
     def _updateModules(self, mods):
@@ -210,6 +289,8 @@ class protocol():
                 
 
     def _manageGraphChange(self, newGraph):
+        if newGraph==None:
+            return
         #checking for change in graph structure
         #a node is untrusted if its inputs have changed
         oldg = self._graphres.getValue()
