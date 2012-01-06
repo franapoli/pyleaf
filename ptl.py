@@ -166,9 +166,37 @@ class protocol():
                 mystr+='NOT dumped'
             mystr += '\n'
         print mystr
+
+    def export(self, ofile, layout='LR'):
+        """Exports the protocol to a pdf file."""
+        import textwrap
+        ofile = self._metafolder+'/'+ofile
+        f=open(ofile, 'w')
+        f.write('digraph G {'+
+                'node [shape=box, style=rounded];'+
+                'rankdir='+
+                ('TB' if layout.lower()=='TB' else 'LR')+
+                ';')
+        for idx, node in enumerate(self._getGraph().getNodes()):
+            f.write(str(node))
+            docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
+            f.write('[label = <<table border="0"><tr><td><B>' +
+                    node +
+                    '</B></td></tr><tr><td align = "left"><font POINT-SIZE="10">'+
+                   ('-' if docstr == None else  textwrap.fill(docstr, 30)).replace('\n','<br/>') +
+                    '</font></td></tr></table>>]\n')
+        for node in self._getGraph().keys():
+            for onode in self._getGraph()[node]:
+                f.write(node + ' -> ' + onode + '\n')
+        f.write('}')
+        f.close()
+        t=os.system('dot -Tpdf -o' + ofile + '.pdf ' + ofile)
+        if t!=0:
+            raise NameError('Problems running dot: have you installed it?')
+
         
     def publish(self, ofile, layout='LR'):
-        """Exports the protocol to a pdf file."""
+        """Publish the protocol to a HTML file."""
         import textwrap
         import os.path
         oname = ofile
