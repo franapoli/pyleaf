@@ -21,11 +21,12 @@ class protocol():
     Protocols are created by the prj class: use it to obtain a protocol object.
     """    
 
-    def __init__(self, graph, mods, folder):
+    def __init__(self, graph, mods, folder, doc):
         dbgstr('Initializing protocol with root: ' + folder)
         self._metafolder = folder
         self._rootdir = os.getcwd()
         self._resmap = dict()
+        self._doc = doc
 
         self._graphres = resource('graph', folder+'/graph.grp')
         self._graphres.setValue(graph)
@@ -198,6 +199,10 @@ class protocol():
         if t!=0:
             raise NameError('Problems running dot: have you installed it?')
 
+    def _readabletime(self, secs):
+        mins, secs = divmod(secs, 60)
+        hours, mins = divmod(mins, 60)
+        return '%02d:%02d:%02.02f' % (hours, mins, secs)
         
     def publish(self, ofile, layout='LR'):
         """Publish the protocol to a HTML file."""
@@ -286,6 +291,14 @@ class protocol():
         f = open(ofile+'.html', 'w')
         f.write(html_header)
         f.write('<div class="breadcrumbs"><h1>' + oname + '</h1></div><div class="middle">')
+        f.write('<h2>Project Summary</h2>')
+        f.write('<div style="width: 90%">')
+        if len(self._doc)>0:
+            f.write('<b>Description:</b> ' + self._doc + '<br>')
+        f.write('<b>Number of Modules:</b> ' + str(len(self._getGraph())) + '<br>')
+        f.write('<b>Number of Output modules:</b> ' + str(sum([self._isFileMod(node) for node in self._getGraph().getNodes()]))+'<br>')
+        f.write('<b>Total CPU time required:</b> '+ self._readabletime(sum([self._resmap[x]._buildtime for x in self._resmap]))+'<br>')
+        f.write('</div><br>')
         f.write('<h2>Protocol map</h2>')
         f.write('<div align = "center">')
         f.write('<IMG SRC="' + oname + '.gif" USEMAP="#G" />\n')
@@ -311,7 +324,7 @@ class protocol():
                 btime = 'uknknown'
 
             f.write('<br><br>Last build was on ' + tstamp  + '.<br>')
-            f.write('It took: ' + str(btime)  + '.<br>')
+            f.write('Time it took: ' + str(self._readabletime(btime))  + '.<br>')
         
 
             f.write('<div class="code"><pre>')
@@ -820,3 +833,4 @@ class protocol():
     _modules = dict()
     _modhelp = dict()
     _auto_place_files = False
+    _doc = ''
