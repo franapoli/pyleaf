@@ -11,7 +11,7 @@ from leaf.log import send as dbgstr
 from leaf.rrc import resource
 import copy
 import inspect
-        
+import time        
     
 
 class protocol():
@@ -68,7 +68,7 @@ class protocol():
     def undumpall(self):
         """Deletes all dumped resources"""
         for res in self._getResNames():
-            self.clearDump(res)
+            self.undump(res)
 
         if os.path.exists(self._metafolder):
             if os.listdir(self._metafolder) == []:
@@ -108,16 +108,20 @@ class protocol():
                 self.clear(res)
 
     def clear(self, filtername):
-        """Clears and undumps a resource.""" 
+        """Clears a resource.""" 
         if type(filtername) != str:
             filtername = filtername.__name__
-
-        if self._isDumped(filtername):
-            dbgstr('Clearing dump: ' + str(filtername), 2)
-            self._getResource(filtername).clearDump()
         if self._isAvailable(filtername):
             dbgstr('Clearing resource: ' + str(filtername))
             self._resmap[filtername].clear()
+
+    def undump(self, filtername):
+        """Undumps a resource."""
+        if type(filtername) != str:
+            filtername = filtername.__name__
+        if self._isDumped(filtername):
+            dbgstr('Clearing dump: ' + str(filtername), 2)
+            self._getResource(filtername).clearDump()
 
     def provide(self, resname):
         """Provides a resource.
@@ -200,7 +204,7 @@ class protocol():
         import textwrap
         import os.path
         oname = ofile
-        ofile = os.path.join(self._metafolder, ofile)
+        #ofile = os.path.join(self._metafolder, ofile)
         f=open(ofile+'.dot', 'w')
         f.write('digraph G {\n'+
                 'graph [size="20, 20"];\n' +
@@ -211,7 +215,20 @@ class protocol():
         for idx, node in enumerate(self._getGraph().getNodes()):
             f.write(str(node))
             docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
-            f.write('[label = <<table border="0">\n'+
+
+            if self._isFileMod(node):
+                shape = 'note'
+                if self._isAvailable(node):
+                    output_line = '\t\t<td href="'+self._getResource(node).getValue()+'"><font POINT-SIZE="8"><u>output</u></font></td>\n'
+                else:
+                    output_line = '\t\t<td><font POINT-SIZE="8"><u>not built</u></font></td>\n'                    
+            else:
+                output_line='\t\t<td></td>\n'
+                shape = 'box'
+
+            
+
+            f.write('[shape = ' + shape + ', label = <<table border="0">\n'+
                     '\t<tr>\n'+
                     '\t\t<td colspan="2"><B>' + node + '</B></td>\n'+
                     '\t</tr>\n'+
@@ -221,8 +238,8 @@ class protocol():
                     '</font></td>\n'+
                     '\t</tr>\n' +
                     '\t<tr>\n'+
-                    '\t\t<td href="#'+node+'_details"><font POINT-SIZE="10"><u>details</u></font></td>\n'+
-                    '\t\t<td href="#'+node+'_output"><font POINT-SIZE="10"><u>output</u></font></td>\n'+
+                    '\t\t<td href="#'+node+'_details"><font POINT-SIZE="8"><u>details</u></font></td>\n'+
+                    output_line +
                     '\t</tr>\n'+
                     '</table>>]\n')
         for node in self._getGraph().keys():
@@ -270,7 +287,9 @@ class protocol():
         f.write(html_header)
         f.write('<div class="breadcrumbs"><h1>' + oname + '</h1></div><div class="middle">')
         f.write('<h2>Protocol map</h2>')
+        f.write('<div align = "center">')
         f.write('<IMG SRC="' + oname + '.gif" USEMAP="#G" />\n')
+        f.write('</div>')
         map = open(ofile + '.map').read()
         f.write(map)
 
@@ -280,9 +299,20 @@ class protocol():
             f.write('<h3><a name="'+str(node)+'_details">'+str(node)+'</a></h3>\n')
             docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
             if docstr == None:
-                f.write('[code not available]')
+                f.write('[documentation not available]')
             else:
                 f.write(docstr)
+                
+            if not self._resmap[node]._timestamp == None:
+                tstamp = self._resmap[node]._timestamp
+                btime = self._resmap[node]._buildtime
+            else:
+                tstamp = 'never'
+                btime = 'uknknown'
+
+            f.write('<br><br>Last build was on ' + tstamp  + '.<br>')
+            f.write('It took: ' + str(btime)  + '.<br>')
+        
 
             f.write('<div class="code"><pre>')
             srccode = inspect.getsource(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
@@ -290,13 +320,22 @@ class protocol():
             f.write('</pre></div>')
             f.write('<hr>')
 
-        import time
 
         f.write('<div id="footer">')
         f.write('<br><br><i>Automatically generated on ' + time.asctime() +  ' using Leaf</i>')
         f.write('</div>')
         f.write(html_footer)
 
+        stylef = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'style.css')
+        logof = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'leaf.png')
+
+        import shutil
+        if not os.path.exists('style.css'):
+            shutil.copyfile(stylef, 'style.css')
+        if not os.path.exists('leaf.png'):
+            shutil.copyfile(logof, 'leaf.png')
 
 
 
@@ -413,11 +452,13 @@ class protocol():
     def _dumpResource(self, res):
         self._getResource(res).dump()
         
-    def _newResource(self, resname, resval):
+    def _newResource(self, resname, resval, t):
         dbgstr('Updating resource: ' + resname, 2)
         dbgstr('with contents: ' + str(resval), 3)
         self._getResource(resname).setValue(resval)
         self._getResource(resname).updateFingerprint()
+        self._getResource(resname)._buildtime = t
+        self._getResource(resname)._timestamp = time.asctime()
         self._dumpResource(resname)
         
     def _clearFilter(self, nodename):
@@ -508,25 +549,34 @@ class protocol():
         dbgstr('through ' + str(self._getModule(node).getValue()), 2)
         dbgstr('on input:\n\t' + str(nodeparams), 3)
         
-        return self._callMod(node, nodeparams)
+
+
+        newres, newresname = self._callMod(node, nodeparams)
+        dbgstr('Build took ' + str(self._resmap[newresname]._buildtime))
+
+        return newres
         
     def _getModule(self, name):
         return self._modules[name]
         
     def _callMod(self, node, nodeparams):
-        
+        t = time.time()
+
         if not self._checkIsFunction(self._modules[node].getValue()):
             dbgstr('Node '+node+' is not a function: passing itself.', 2)            
             newres = self._modules[node].getValue()
-            self._processRawRes(node, newres)
+
             
         elif len(nodeparams)==0:
             dbgstr('No input for: ' + str(node), 1)
             dbgstr('Running node: ' + node)
+            
             newres = apply(self._modules[node].getValue(), [])
+
+
             dbgstr('Done.')
             dbgstr('Produced list:\n\t' + str(newres), 3)
-            self._processRawRes(node, newres)
+
     
         elif self._getGraph().getAttrib(node, 'hash'):
             dbgstr('Inputs are joined.', 2)
@@ -534,7 +584,7 @@ class protocol():
             newres = apply(self._modules[node].getValue(), nodeparams)
             dbgstr('Done.', 0)
             dbgstr('Produced list:\n\t' + str(newres), 3)
-            self._processRawRes(node, newres)
+
             
         else:
             dbgstr('Inputs are hashed.', 2)
@@ -543,9 +593,13 @@ class protocol():
                 newres = self._modules[node].getValue()(nodeparam)
                 dbgstr('Done.')
                 dbgstr('Produced list:\n\t' + str(newres), 3)
-                self._processRawRes(node, newres)
+
+        newresname = self._buildResName(node, None, newres)
+        dbgstr('Requesting add resource: ' + node, 2)
+        t = time.time() - t
+        self._newResource(newresname, newres, t)
             
-        return newres
+        return newres, newresname
         
     def _checkIsFunction(self, x):
         #return hasattr(self._modules[node].getValue(), '_call_'):

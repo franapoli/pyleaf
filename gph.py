@@ -88,11 +88,14 @@ rankdir=LR;
         f=open('leafprot.lf', 'w')
         f.write(leafprot)
         f.close()
-        t=os.system('leaf ' + 'leafprot.lf')
+        lglc = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            'lglc')
+
+        t=os.system(lglc + ' leafprot.lf')
         if t!=0:
             raise NameError('Problems parsing protocol, check syntax.')
                                 
-        a = open('leafprot.lf.dot','r').read()
+        a = open('out.dot','r').read()
         edges = re.findall(r'\d+->\d+', a)
         nodelines = re.findall(r'(\d+) \[ (.*)\]', a)
         nodes = list()        
@@ -127,7 +130,7 @@ rankdir=LR;
         for key in self.keys():
             self[key] = sorted(self[key])
 
-        os.remove('leafprot.lf.dot')
+        #os.remove('f.dot')
         log.send('Graph is: ' + str(self), 2)        
 
         
