@@ -26,16 +26,6 @@ class project():
         self._leafProtName=leafprot
         self._initGraphs(self._seekforProt(leafprot))
 
-    def _extract_doc(self, lglprot):
-        import re
-
-        h = re.findall("/\*(.*)\*/", lglprot, re.DOTALL)
-
-        if len(h)>0:
-            return h[0]
-        else:
-            return ''
-
 
     def _seekforProt(self, gname):
         #extracts a variable with the given name from
@@ -100,8 +90,8 @@ class project():
             if not os.path.exists(altfolder):
                 os.mkdir(altfolder)
 
-            self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder, self._extract_doc(leafprot))
-            #self.protocols[gname]._getGraph().toPdf(altfolder+'/graph.dot')
+            self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
+            self.protocols[gname]._getGraph().toPdf(altfolder+'/graph.dot')
             #if not os.path.exists('wdir'):
             #    os.mkdir('wdir')
             #if not os.path.exists('wdir/' + gname):

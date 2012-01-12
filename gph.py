@@ -1,7 +1,7 @@
 import re
 import os
 import log
-
+import sys
 
 class graph(dict):
     def getNodes(self):
@@ -88,12 +88,12 @@ rankdir=LR;
         f=open('leafprot.lf', 'w')
         f.write(leafprot)
         f.close()
-        lglc = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            'lglc')
-
-        t=os.system(lglc + ' leafprot.lf')
+        t=os.system(os.path.join(sys.prefix, 'lglc ' + 'leafprot.lf'))
         if t!=0:
             raise NameError('Problems parsing protocol, check syntax.')
+        #t=os.system('dot -Tpdf leafprot.lf.dot -otemp.pdf')
+        #if t!=0:
+        #    raise NameError('Problems running dot: have you installed it?')
                                 
         a = open('out.dot','r').read()
         edges = re.findall(r'\d+->\d+', a)
@@ -130,7 +130,7 @@ rankdir=LR;
         for key in self.keys():
             self[key] = sorted(self[key])
 
-        #os.remove('f.dot')
+        #os.remove('leafprot.lf.dot')
         log.send('Graph is: ' + str(self), 2)        
 
         

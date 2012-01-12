@@ -38,8 +38,6 @@ class resource():
         if self.isDumped():
             log.send(self.name() + ' is dumped in ' + self._path + ': loading it.')
             res = cPickle.load(open(self._path, 'r'))
-            self._timestamp = res._timestamp
-            self._buildtime = res._buildtime
             self.setDumpPath(res.getDumpPath())
             self.setIsFile(res.isFile())
             self.setValue(res.getValue())
@@ -125,5 +123,6 @@ class resource():
     _fingerprint = None
     _path = None
     _isfile = False
-    _timestamp = None
-    _buildtime = None
+    
+
+        
