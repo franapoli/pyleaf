@@ -1,6 +1,6 @@
 import re
 import os
-import log
+from leaf import log
 import sys
 
 class graph(dict):

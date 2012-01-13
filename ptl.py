@@ -5,14 +5,14 @@ Created on Fri Oct 22 15:59:38 2010
 """
 
 import os
-import cPickle
-import leafinspect
+import pickle
+from leaf import leafinspect
 from leaf.log import send as dbgstr
 from leaf.rrc import resource
 import copy
 import inspect
 import time        
-    
+import sys    
 
 class protocol():
     """Leaf Protocol
@@ -66,6 +66,11 @@ class protocol():
         self._graphres.setValue(graph)
         self._graphres.update()
         self._updateModules(mods)
+
+    def clearall(self):
+        """Clears all dumped resources"""
+        for res in self._getResNames():
+            self.clear(res)
 
     def undumpall(self):
         """Deletes all dumped resources"""
@@ -171,7 +176,7 @@ class protocol():
             else:
                 mystr+='NOT dumped'
             mystr += '\n'
-        print mystr
+        print(mystr)
 
     def export(self, ofile, layout='LR'):
         """Exports the protocol to a pdf file."""
@@ -339,11 +344,10 @@ class protocol():
         f.write('<br><br><i>Automatically generated on ' + time.asctime() +  ' using Leaf</i>')
         f.write('</div>')
         f.write(html_footer)
+        f.close()
 
-        stylef = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            'style.css')
-        logof = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            'leaf.png')
+        stylef = os.path.join(sys.prefix, 'style.css')
+        logof = os.path.join(sys.prefix, 'leaf.png')
 
         import shutil
         if not os.path.exists('style.css'):
@@ -512,7 +516,7 @@ class protocol():
             dbgstr('Found on disk: ' + str(resname))
             self._addResource(resname, self._loadResource(resname))
             dbgstr('Resource content is:\n' + str(self._getResource(resname)), 4)
-            return self._resmap[-1]
+            return self._resmap[resname]
         else:
             dbgstr('Resource not found. I need to run first: ' + str(resname))
             self._runNode(resname)
@@ -696,10 +700,10 @@ class protocol():
     def _loadResource(self, res):
         dbgstr('Getting resource ' + str(res) + ' from disk.', 2)
         if self._isDumped(res):
-            dbgstr('Resource ' + str(res) + ' found in: ' + res.getDumpPath() ,2)
-            return cPickle.load(open(res.getDumpPath(), 'r'))
+            dbgstr('Resource ' + str(self._resmap[res]) + ' found in: ' + self._resmap[res].getDumpPath() ,2)
+            return pickle.load(open(self._resmap[res].getDumpPath(), 'r'))
         else:
-            dbgstr('Resource ' + str(res) + ' not found on disk! I\'ve been looking for: ' + res.getDumpPath())
+            dbgstr('Resource ' + str(res) + ' not found on disk! I\'ve been looking for: ' + self._resmap[res].getDumpPath())
 
     def _ChangeME_resToPath(self, res):
         if self._getGraph().getAttrib(res[0], 'hashout'):
@@ -810,7 +814,7 @@ class protocol():
             
     def _loadMods(self):
         if os.path.exists(self.modsToPath()):
-            mods = cPickle.load(open(self.modsToPath(), 'r'))
+            mods = pickle.load(open(self.modsToPath(), 'r'))
         else:
             mods = dict()
         

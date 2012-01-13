@@ -7,7 +7,7 @@
     """
 
 from datetime import datetime
-import leafinspect
+from leaf import leafinspect
 
 filopt = dict()
 stdopt = dict()
@@ -47,7 +47,7 @@ def insertBreak():
             logfile.write(ostr+'\n')
         except:
             pass
-    print
+    print('\n')
         
 def makeLogString(string, logopt, caller, callerStack, curr_lev):
     outstr = '[L'
@@ -115,7 +115,7 @@ def send(string='', verbosity=1):
 
         if verbosity <= stdopt['verbosity']:
             outstr_std = makeLogString(string, stdopt, caller, callerstack, curr_lev)        
-            print colorize(outstr_std)
+            print(colorize(outstr_std))
 
     lastmsg = string
 

@@ -4,9 +4,9 @@ Created on Fri Oct 22 15:59:38 2010
 @author: ciccio
 """
 import os
-import leafinspect
-from gph import graph
-import log
+from leaf import leafinspect
+from leaf.gph import graph
+from leaf import log
 from leaf.ptl import protocol
 import copy
 
