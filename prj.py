@@ -4,7 +4,7 @@ Created on Fri Oct 22 15:59:38 2010
 @author: ciccio
 """
 import os
-from leaf import leafinspect
+import inspect
 from leaf.gph import graph
 from leaf import log
 from leaf.ptl import protocol
@@ -184,7 +184,7 @@ class project():
         log.send('Your module is: ' + str(self._usermodule), 2)
         hislocals = dict()
 
-        for (name, value) in leafinspect.getmembers(self._usermodule):
+        for (name, value) in inspect.getmembers(self._usermodule):
             hislocals[name] = value
 
         return hislocals

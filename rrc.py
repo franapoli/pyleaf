@@ -2,7 +2,7 @@
 import os
 from leaf import log
 import pickle
-from leaf import leafinspect
+import inspect
 
 
 class resource():
@@ -98,9 +98,9 @@ class resource():
         
     def _makeFingerprint(self, obj):
         try:
-            leafinspect.getsource(obj)
+            inspect.getsource(obj)
             log.send('Source got.', 3)
-            return leafinspect.getsource(obj)
+            return inspect.getsource(obj)
         except Exception:            
             log.send('No source: passing object', 3)
             return obj

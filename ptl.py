@@ -6,7 +6,7 @@ Created on Fri Oct 22 15:59:38 2010
 
 import os
 import pickle
-from leaf import leafinspect
+import inspect
 from leaf.log import send as dbgstr
 from leaf.rrc import resource
 import copy
@@ -397,8 +397,8 @@ class protocol():
             
     def _getContents(self, mod):
         try:
-            leafinspect.getsource(mod)
-            value = leafinspect.getsource(mod)
+            inspect.getsource(mod)
+            value = inspect.getsource(mod)
         except Exception:            
             value = mod
         return value
