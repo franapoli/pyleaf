@@ -7,7 +7,7 @@
     """
 
 from datetime import datetime
-from leaf import leafinspect
+import inspect
 
 filopt = dict()
 stdopt = dict()
@@ -91,7 +91,7 @@ def send(string='', verbosity=1):
                 base_stack_level = len(stack())
         
             curr_lev = len(stack()) - base_stack_level        
-            caller = leafinspect.stack()[1][3]
+            caller = inspect.stack()[1][3]
         else:
             caller=''
             curr_lev=0
@@ -136,7 +136,7 @@ def endline():
     
 def getStackPath():
     path=list()
-    for frame in leafinspect.stack():
+    for frame in inspect.stack():
         path.append(frame[3])
 
     return path

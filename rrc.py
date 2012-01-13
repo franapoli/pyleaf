@@ -37,7 +37,7 @@ class resource():
     def load(self):
         if self.isDumped():
             log.send(self.name() + ' is dumped in ' + self._path + ': loading it.')
-            res = pickle.load(open(self._path, 'r'))
+            res = pickle.load(open(self._path, 'rb'))
             self._timestamp = res._timestamp
             self._buildtime = res._buildtime
             self.setDumpPath(res.getDumpPath())
@@ -66,7 +66,7 @@ class resource():
         log.send('fingerprint: ' + str(self._fingerprint), 3)
 
         log.send('Dumping to file: ' + self._path, 2)
-        pickle.dump(self, open(self._path, 'w'))
+        pickle.dump(self, open(self._path, 'wb'))
         
     def isAvailable(self):
         return self._contents != None

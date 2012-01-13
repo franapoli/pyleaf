@@ -9,7 +9,7 @@ from leaf.gph import graph
 from leaf import log
 from leaf.ptl import protocol
 import copy
-
+from imp import reload
 
 class project():
     """Leaf Project: creates Leaf protocols binding an LGL graph to Python functions.    

@@ -589,7 +589,7 @@ class protocol():
             dbgstr('No input for: ' + str(node), 1)
             dbgstr('Running node: ' + node)
             
-            newres = apply(self._modules[node].getValue(), [])
+            newres = self._modules[node].getValue()()
 
 
             dbgstr('Done.')
@@ -599,7 +599,7 @@ class protocol():
         elif self._getGraph().getAttrib(node, 'hash'):
             dbgstr('Inputs are joined.', 2)
             dbgstr('Running node: ' + node)
-            newres = apply(self._modules[node].getValue(), nodeparams)
+            newres = self._modules[node].getValue()(*nodeparams)
             dbgstr('Done.', 0)
             dbgstr('Produced list:\n\t' + str(newres), 3)
 
