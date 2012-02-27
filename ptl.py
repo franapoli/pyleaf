@@ -207,9 +207,15 @@ class protocol():
                 ('TB' if layout.lower()=='TB' else 'LR')+
                 ';')
         for idx, node in enumerate(self._getGraph().getNodes()):
+
+            if self._isFileMod(node):
+                shape = 'note'
+            else:
+                shape = 'box'
+
             f.write(str(node))
             docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
-            f.write('[label = <<table border="0"><tr><td><B>' +
+            f.write('[shape = ' + shape + ', label = <<table border="0"><tr><td><B>' +
                     node +
                     '</B></td></tr><tr><td align = "left"><font POINT-SIZE="10">'+
                    ('-' if docstr == None else  textwrap.fill(docstr, 30)).replace('\n','<br/>') +
@@ -277,6 +283,8 @@ class protocol():
         f.write('}')
         f.close()
         t=os.system('dot -s160 -Tcmapx -o' + ofile + '.map -Tgif -o' + ofile + '.gif ' + ofile + '.dot')
+        t=os.system('dot -Tpdf -o' + ofile + '.pdf ' + ofile + '.dot')
+
         if t!=0:
             raise NameError('Problems running dot: have you installed it?')
 
