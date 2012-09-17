@@ -204,7 +204,7 @@ class protocol():
         f.write('digraph G {'+
                 'node [shape=box, style=rounded];'+
                 'rankdir='+
-                ('TB' if layout.lower()=='TB' else 'LR')+
+                ('TB' if layout.lower()=='tb' else 'LR')+
                 ';')
         for idx, node in enumerate(self._getGraph().getNodes()):
 
