@@ -31,7 +31,7 @@ class graph(dict):
 
     def getInNodes(self, node):        
         g = self.__reverseDict()
-        log.send('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 2)
+        log.send('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 3)
         return g[node]
         
     def getOutNodes(self, node):
@@ -99,21 +99,42 @@ rankdir=LR;
             if node in targets:
                 del(targets[targets.index(node)])
 
-
-    def fromLeaf(self, leafprot):
-        for key in self.keys():
-            del(self[key])
+    def lgl2dot(self, leafprot):
         f=open('leafprot.lf', 'w')
         f.write(leafprot)
         f.close()
-        t=os.system(os.path.join(sys.prefix, 'lglc ' + 'leafprot.lf'))
+
+
+        def findLglcBin():
+            for path in os.environ["PATH"].split(os.pathsep):
+                lglcbin = os.path.join(path, 'lglc')
+                if os.path.isfile(lglcbin):
+                    return lglcbin
+                else:
+                    NameError('Error while searching for lglc binary. Is it in your PATH?')
+            return lglcbin
+            
+        lglcbin = findLglcBin()
+        if not os.access(lglcbin, os.X_OK):
+            raise NameError('Error while running binary ' +\
+                                lglcbin +'. Please make sure you have permissions to run it.')
+
+        t=os.system(os.path.join(sys.prefix, lglcbin) + ' leafprot.lf')
         if t!=0:
-            raise NameError('Problems parsing protocol, check syntax.')
+            raise NameError('lglc binary returned an error: please check its output.')
         #t=os.system('dot -Tpdf leafprot.lf.dot -otemp.pdf')
         #if t!=0:
         #    raise NameError('Problems running dot: have you installed it?')
                                 
         a = open('out.dot','r').read()
+        return a
+
+    def fromLeaf(self, leafprot):
+        a = self.lgl2dot(leafprot)
+
+        for key in self.keys():
+            del(self[key])
+
         edges = re.findall(r'\d+->\d+', a)
         nodelines = re.findall(r'(\d+) \[ (.*)\]', a)
         nodes = list()        
@@ -129,6 +150,8 @@ rankdir=LR;
                     nodes.append([nodeid, nodename])
                     self.setAttrib(nodename, 'id', int(nodeid))
                 self.setAttrib(nodename, key_val[0].strip(), key_val[1].strip())            
+            if self.getAttrib(nodename, 'bind')==None:
+                self.setAttrib(nodename, 'bind', nodename)
             
         names = dict()
         for node in nodes: names[node[0]]=node[1]

@@ -42,6 +42,7 @@ class project():
         if not os.path.exists(self._metafolder):
             os.mkdir(self._metafolder)
         self._leafProtName=leafprot
+        self._updateUserModule()
         self._initGraphs(self._seekforProt(leafprot))
 
     def _extract_doc(self, lglprot):
@@ -188,18 +189,31 @@ class project():
         else:
             raise NameError('I couldn''t find a variable called leafProtocol')
 
-
-    def _getUserLocals(self):
+    def _updateUserModule(self):
         import sys
+
+        #the following is needed to sync the inspect module
+        #with actual disk content
+        import linecache
+        linecache.checkcache()
+
         if self._modulename in sys.modules.keys():
+            log.send('Reloading user module.')
             self._usermodule = sys.modules[self._modulename]
-        else:
-            self._usermodule = __import__(self._modulename)
-        if not self._is_first_import:
-            log.send('Reloading user module.', 2)
             reload(self._usermodule)
+        else:
+            log.send('Loading user module.')
+            self._usermodule = __import__(self._modulename)
+        #if not self._is_first_import:
+         #   log.send('Reloading user module.')
+          #  reload(self._usermodule)
+        #
         self._is_first_import = False
         log.send('Your module is: ' + str(self._usermodule), 2)
+
+        return self._usermodule
+
+    def _getUserLocals(self):
         hislocals = dict()
 
         for (name, value) in inspect.getmembers(self._usermodule):
@@ -207,18 +221,20 @@ class project():
 
         return hislocals
         
-    def _listFilters(self):
-        names = self._graph.getNodes()
-        log.send('Mod names are: ' + str(names), 3)
-        return names
+    #def _listFilters(self):
+    #    names = self._graph.getNodes()
+    #    log.send('Mod names are: ' + str(names), 3)
+    #    return names
                 
         
     def _seekforMods(self):
         log.send('Looking for mods in user module.', 3)
-        hislocals=self._getUserLocals()
+        hislocals = self._getUserLocals()
 
         mymods=dict()
-        for modname in self._listFilters():
+        nodenames = self._graph.getNodes()
+        for nodename in nodenames:
+            modname = self._graph.getAttrib(nodename, 'bind')
             if modname in hislocals.keys():
                 mymods[modname] = hislocals[modname]
             else:
@@ -240,6 +256,7 @@ class project():
 
         Function has no return value.
         """
+        self._updateUserModule()
         gname = self._seekforProt(self._leafProtName)        
         self._updateGraphs(gname)
             

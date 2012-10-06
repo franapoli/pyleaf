@@ -89,6 +89,7 @@ def makeLogString(string, logopt, caller, callerStack, curr_lev):
     outstr += ']'
 
 
+
     if string == '':
         outstr += 'I''m working right now.'
     else:
@@ -101,8 +102,8 @@ def makeLogString(string, logopt, caller, callerStack, curr_lev):
 
 def send(string='', verbosity=1):    
     global base_stack_level, lastmsg, stdopt, filopt
-    if string==lastmsg:
-        return
+#    if string==lastmsg:
+#       return
     
     if verbosity <= filopt['verbosity'] or verbosity <= stdopt['verbosity']:
         if stdopt['showCaller'] or filopt['showCaller']:

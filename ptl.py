@@ -413,7 +413,7 @@ class protocol():
                 for inNode in innodes1:
                     if not inNode in innodes2:
                         dbgstr('Inputs to ' + node + 'have changed, untrusting it.')
-
+                        raise NameError('add code to do this!')
     
             
 #    def modSummary(self):

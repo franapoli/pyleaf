@@ -116,7 +116,8 @@ class resource():
     def _makeFingerprint(self, obj):
         try:
             inspect.getsource(obj)
-            log.send('Source got.', 3)
+            log.send('Source got:', 3)
+            log.send(inspect.getsource(obj), 3)
             return inspect.getsource(obj)
         except Exception:            
             log.send('No source: passing object', 3)
