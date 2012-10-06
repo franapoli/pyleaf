@@ -40,6 +40,8 @@ class protocol():
     """    
 
     def __init__(self, graph, mods, folder, doc):
+        untrustme1 = list()
+        untrustme2 = list()
         dbgstr('Initializing protocol with root: ' + folder)
         self._metafolder = folder
         self._rootdir = os.getcwd()
@@ -47,11 +49,13 @@ class protocol():
         self._doc = doc
 
         self._graphres = resource('graph', os.path.join(folder,'graph.grp'))
+
         self._graphres.setValue(graph)
         if self._graphres.changed():
             if self._graphres.isDumped():
-                self._manageGraphChange(self._graphres.getFingerprint())
+                untrustme1 = self._manageGraphChange(self._graphres.getFingerprint())
         self._graphres.update()
+
 
         for res in self._getResNames():
             newres = resource(res, folder+'/'+res+'.res')
@@ -63,7 +67,12 @@ class protocol():
             newres.setDump(True)
             self._modules[mod] = newres
 
-        self._updateModules(mods)
+        untrustme2 = self._updateModules(mods)
+
+        for mod in untrustme1:
+            self.untrust(mod)
+        for mod in untrustme2:
+            self.untrust(mod)
 
 #    def show(self):
 #        """Shows the Protocol Graph."""
@@ -78,12 +87,20 @@ class protocol():
 #            dbgstr(ostr[0:-2], 0)
         
     def _update(self, graph, mods):
+        untrustme1 = list()
+        untrustme2 = list()
         dbgstr('New graph is: ' + str(graph), 3)
         dbgstr('New mods are: ' + str(mods), 3)
-        self._manageGraphChange(graph)
+        untrustme1 = self._manageGraphChange(graph)
         self._graphres.setValue(graph)
         self._graphres.update()
-        self._updateModules(mods)
+        import pdb; pdb.set_trace()
+        untrustme2 = self._updateModules(mods)
+        for mod in untrustme1:
+            self.untrust(mod)
+        for mod in untrustme2:
+            self.untrust(mod)
+
 
     def clearall(self):
         """Clears all dumped resources"""
@@ -123,14 +140,18 @@ class protocol():
         return res
     
     def untrust(self, nodename):
-        """Clears resource and all its dependent.""" 
+        """Clears and undumps resource and all its dependent.""" 
         #if self._isLeaf(nodename):
+        import pdb; pdb.set_trace()
+        self.undump(nodename)
         self.clear(nodename)
                 
         dependents = self._getOutNodesRecursive(nodename)
         for res in self._getResNames():
             if(res in dependents):
+                self.undump(res)
                 self.clear(res)
+
 
     def clear(self, filtername):
         """Clears a resource.""" 
@@ -145,7 +166,7 @@ class protocol():
         if type(filtername) != str:
             filtername = filtername.__name__
         if self._isDumped(filtername):
-            dbgstr('Clearing dump: ' + str(filtername), 2)
+            dbgstr('Undumping resource: ' + str(filtername))
             self._getResource(filtername).clearDump()
 
     def provide(self, resname):
@@ -384,11 +405,13 @@ class protocol():
 
 
     def _updateModules(self, mods):
+        untrustme = list()
         for modname in mods:
             if modname in self._modules.keys():
                 self._modules[modname].setValue(mods[modname])
                 if self._modules[modname].changed():
-                    self.untrust(self._modules[modname].name())
+                    untrustme.append(modname)
+                    #self.untrust(self._modules[modname].name())
                     self._modhelp[modname] = inspect.getdoc(self._modules[modname].getValue())
                 self._modules[modname].update()
             else:
@@ -396,15 +419,20 @@ class protocol():
                 self._modules[modname] = resource(modname,
                     self._metafolder+'/'+modname+'.dmp' )
                 self._modules[modname].setValue(mods[modname])
-                self._modules[modname].update()                
+                self._modules[modname].update()
+        return untrustme
                 
 
     def _manageGraphChange(self, newGraph):
         if newGraph==None:
             return
         #checking for change in graph structure
-        #a node is untrusted if its inputs have changed
+        #a node is flagged as to-be-untrustest if its inputs have changed
+        #not untrusted on the fly because of dependancies with untrusts
+        #from source code changes
         oldg = self._graphres.getValue()
+        untrustme = list()
+#        import pdb; pdb.set_trace()
 
         for node in newGraph.getNodes():
             if node in oldg.getNodes():
@@ -412,8 +440,11 @@ class protocol():
                 innodes2 = oldg.getInNodes(node)
                 for inNode in innodes1:
                     if not inNode in innodes2:
-                        dbgstr('Inputs to ' + node + 'have changed, untrusting it.')
-                        raise NameError('add code to do this!')
+                        dbgstr('Inputs to ' + node + ' have changed, untrusting it.')
+                        untrustme.append(node)
+                        #raise NameError('TODO: add code to do this!')
+
+        return untrustme
     
             
 #    def modSummary(self):
