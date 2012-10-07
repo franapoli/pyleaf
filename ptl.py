@@ -94,7 +94,7 @@ class protocol():
         untrustme1 = self._manageGraphChange(graph)
         self._graphres.setValue(graph)
         self._graphres.update()
-        import pdb; pdb.set_trace()
+#        import pdb; pdb.set_trace()
         untrustme2 = self._updateModules(mods)
         for mod in untrustme1:
             self.untrust(mod)
@@ -142,7 +142,7 @@ class protocol():
     def untrust(self, nodename):
         """Clears and undumps resource and all its dependent.""" 
         #if self._isLeaf(nodename):
-        import pdb; pdb.set_trace()
+#        import pdb; pdb.set_trace()
         self.undump(nodename)
         self.clear(nodename)
                 
@@ -237,7 +237,7 @@ class protocol():
             f.write(str(node))
             docstr = inspect.getdoc(self._modules[node].getValue()) if type(self._modules[node].getValue())==type(inspect.getdoc) else None
             f.write('[shape = ' + shape + ', label = <<table border="0"><tr><td><B>' +
-                    node +
+                    self._getGraph().getAttrib(node, 'label') +
                     '</B></td></tr><tr><td align = "left"><font POINT-SIZE="10">'+
                    ('-' if docstr == None else  textwrap.fill(docstr, 30)).replace('\n','<br/>') +
                     '</font></td></tr></table>>]\n')
@@ -283,10 +283,11 @@ class protocol():
                 shape = 'box'
 
             
-
             f.write('[shape = ' + shape + ', label = <<table border="0">\n'+
                     '\t<tr>\n'+
-                    '\t\t<td colspan="2"><B>' + node + '</B></td>\n'+
+                    '\t\t<td colspan="2"><B>' +
+                    self._getGraph().getAttrib(node, 'label') +
+                    '</B></td>\n'+
                     '\t</tr>\n'+
                     '\t<tr>\n'+
                     '\t\t<td colspan="2" align = "left"><font POINT-SIZE="10">'+
@@ -418,6 +419,7 @@ class protocol():
                 dbgstr('New module: ' + modname)
                 self._modules[modname] = resource(modname,
                     self._metafolder+'/'+modname+'.dmp' )
+                self._addResource(modname, self._modules[modname])
                 self._modules[modname].setValue(mods[modname])
                 self._modules[modname].update()
         return untrustme
@@ -435,14 +437,22 @@ class protocol():
 #        import pdb; pdb.set_trace()
 
         for node in newGraph.getNodes():
+            #check wether node is (not) new
             if node in oldg.getNodes():
+                #check if node inputs have changed
                 innodes1 = newGraph.getInNodes(node)
                 innodes2 = oldg.getInNodes(node)
                 for inNode in innodes1:
                     if not inNode in innodes2:
                         dbgstr('Inputs to ' + node + ' have changed, untrusting it.')
                         untrustme.append(node)
-                        #raise NameError('TODO: add code to do this!')
+                #check if node properties have changed                
+                #cycling through attrib names of node 'node'
+                # for attrib in [a[1] for a in newGraph._nodeattribs if a[0]==node]:
+                #     if newGraph.getAttrib(node, attrib) != oldg.getAttrib(node, attrib):
+                #         dbgstr('Node attribs of ' + node +
+                #                ' have changed, untrusting it.')
+                #         untrustme.append(node)                        
 
         return untrustme
     

@@ -234,9 +234,14 @@ class project():
         mymods=dict()
         nodenames = self._graph.getNodes()
         for nodename in nodenames:
-            modname = self._graph.getAttrib(nodename, 'bind')
+            modname = nodename #self._graph.getAttrib(nodename, 'bind')
             if modname in hislocals.keys():
-                mymods[modname] = hislocals[modname]
+                if not self._graph.getAttrib(nodename, 'bind') in hislocals:
+                    NameError('There is no '+self._graph.getAttrib(nodename, 'bind')+
+                              ' in your Python module.')
+                mymods[modname] = hislocals[self._graph.getAttrib(nodename, 'bind')]
+                #mymods[modname] = hislocals[modname]
+
             else:
                 raise NameError('I couldn''t bind '+modname+' to any of your defined objects.')
 

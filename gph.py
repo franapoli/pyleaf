@@ -82,8 +82,8 @@ rankdir=LR;
         return rg
 
     def getAttrib(self, node, attr):
-        if (node, attr) in self.__nodeattribs:
-            return self.__nodeattribs[(node, attr)]
+        if (node, attr) in self._nodeattribs:
+            return self._nodeattribs[(node, attr)]
         return None
 
         
@@ -91,7 +91,7 @@ rankdir=LR;
         log.send('Setting ' + 
             str(attr) + ' = ' + str(value) +
             ' for node: ' + str(node), 3)
-        self.__nodeattribs[(node, attr)] = value
+        self._nodeattribs[(node, attr)] = value
         
     def delNode(self, node):
         del(self[node])
@@ -175,5 +175,5 @@ rankdir=LR;
         log.send('Graph is: ' + str(self), 2)        
 
         
-    __nodeattribs = dict()
+    _nodeattribs = dict()
     
