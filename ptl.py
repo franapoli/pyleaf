@@ -622,13 +622,19 @@ class protocol():
             else:
                 nodeparams.append(thisnode_inputs)
         
-        #sorting basing on ids        
-        #ids = [self._getGraph().getAttrib(_node, 'id') for _node in input_nodes]
-        #nodeparams=[one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
+        ###sorting basing on ids        
+        ##ids = [self._getGraph().getAttrib(_node, 'id') for _node in input_nodes]
+        ##nodeparams=[one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
 
-        #sorting basing on alphabetic order of module name
-        nodeparams=[one for (one,two) in sorted(zip(nodeparams, input_nodes), key = lambda x:x[1])]
+        ###sorting basing on alphabetic order of module name
+        ##nodeparams=[one for (one,two) in sorted(zip(nodeparams, input_nodes), key = lambda x:x[1])]
         
+        ##import pdb; pdb.set_trace()
+
+        #gettind edge ids: params will be ordered according to this
+        ids = [self._getGraph().getEdgeAttrib((inp, node), 'id') for inp in input_nodes]
+        ids = [int(x) for x in ids]
+        nodeparams = [one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
 
         dbgstr('Ready to run: ' + node, 2)
         dbgstr('through ' + str(self._getModule(node).getValue()), 2)

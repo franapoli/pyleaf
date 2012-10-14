@@ -129,13 +129,23 @@ rankdir=LR;
         a = open('out.dot','r').read()
         return a
 
+    def setEdgeAttrib(self, edge, key, value):
+        self._edgeattribs[edge, key]=value
+
+    def getEdgeAttrib(self, edge, key):
+        return self._edgeattribs[edge, key]
+
     def fromLeaf(self, leafprot):
+        self._nodeattribs=dict()
+        self._edgeattribs=dict()
+
         a = self.lgl2dot(leafprot)
 
         for key in self.keys():
             del(self[key])
 
-        edges = re.findall(r'\d+->\d+', a)
+        edges = re.findall(r'(\d+->\d+) \[(.*)\]', open('out.dot').read())
+        #edges = re.findall(r'\d+->\d+', a)
         nodelines = re.findall(r'(\d+) \[ (.*)\]', a)
         nodes = list()        
         
@@ -157,12 +167,17 @@ rankdir=LR;
         for node in nodes: names[node[0]]=node[1]
             
         for edge in edges:
-            thisnodes = re.findall('\d+', edge)
+            thisnodes = re.findall('\d+', edge[0])
             key = names[thisnodes[0]]
             if key in self.keys():
                 self[key].append(names[thisnodes[1]])
             else:
                 self[key]=[names[thisnodes[1]]]
+            eattrib = re.findall('(.*)=(.*)', edge[1])[0]
+
+            self.setEdgeAttrib((names[thisnodes[0]],
+                               names[thisnodes[1]]),
+                               eattrib[0], eattrib[1])
     
         for value in names.values():
             if not(value in self.keys()):
@@ -176,4 +191,5 @@ rankdir=LR;
 
         
     _nodeattribs = dict()
+    _edgeattribs = dict()
     
