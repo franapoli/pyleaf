@@ -101,6 +101,12 @@ class protocol():
         for mod in untrustme2:
             self.untrust(mod)
 
+    def listinputs(self, node):
+        return self._getGraph().getInNodes(node)
+
+    def listoutputs(self, node): 
+        return self._getGraph().getOutNodes(node)       
+
 
     def clearall(self):
         """Clears all dumped resources"""
@@ -528,12 +534,7 @@ class protocol():
         
         dbgstr('Modules are: ' + str(self._modules), 3)
         #dbgstr('with source: ' + str(self._modcontents), 3)
-
-        
-
-    def _getInputNames(self, node):
-        dbgstr(str(self._graphres.getValue()._getInNodes(node)))
-        
+                
     def _dumpResource(self, res):
         self._getResource(res).dump()
         
@@ -549,7 +550,7 @@ class protocol():
     def _clearFilter(self, nodename):
         if self._isLeaf(nodename):
             self.clear(nodename)
-        for node in self._getOutNodes(nodename):
+        for node in self.getoutputs(nodename):
             self.clear(node)
 
   
@@ -631,10 +632,12 @@ class protocol():
         
         ##import pdb; pdb.set_trace()
 
-        #gettind edge ids: params will be ordered according to this
-        ids = [self._getGraph().getEdgeAttrib((inp, node), 'id') for inp in input_nodes]
-        ids = [int(x) for x in ids]
-        nodeparams = [one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
+        ## the following is needed since the dict structure does not preserve
+        ## order (the order output by 
+        # gettind edge ids: params will be ordered according to this
+        # ids = [self._getGraph().getEdgeAttrib((inp, node), 'id') for inp in input_nodes]
+        # ids = [int(x) for x in ids]
+        # nodeparams = [one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
 
         dbgstr('Ready to run: ' + node, 2)
         dbgstr('through ' + str(self._getModule(node).getValue()), 2)
@@ -797,23 +800,24 @@ class protocol():
 
 
     def _getInNodes(self, node):
-        g = self._reverseGraph(self._getGraph())
-        dbgstr('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 2)
-        return g[node]
+        return self._getGraph().getInNodes(node)
+        # g = self._reverseGraph(self._getGraph())
+        # dbgstr('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 2)
+        # return g[node]
         
-    def _getOutNodes(self, node):
+    def getoutputs(self, node):
         #dbgstr('out-nodes of ' + str(node) + ' are: ' + str(self._graph[node]), 2)
-        return self._getGraph()[node]
+        return self._getGraph().getOutNodes(node)
         
     def _isLeaf(self, node):
         return self._getGraph()[node]==[]
         
     def _getOutNodesRecursive(self, node):
         alloutnodes = list()
-        nodestack = list(self._getOutNodes(node))
+        nodestack = list(self.getoutputs(node))
         while nodestack!=[]:
             onode = nodestack.pop()
-            nodestack.extend(self._getOutNodes(onode))
+            nodestack.extend(self.getoutputs(onode))
             alloutnodes.append(onode)
         return alloutnodes
 
@@ -829,37 +833,17 @@ class protocol():
         return self._getGraph().getNodes()
 #        resnames = list()
 #        for node in self._getGraph().keys():
-#            if self._getOutNodes(node) == []:
+#            if self.getoutputs(node) == []:
 #                resname = (node, None)
 #                if not resname in resnames:
 #                    resnames.append(resname)
 #            else:
-#                for onode in self._getOutNodes(node):
+#                for onode in self.getoutputs(node):
 #                    resname = (node, onode)
 #                    if not resname in resnames:
 #                        resnames.append(resname)
 #        dbgstr('Resource names: ' + str(resnames), 3)
 #        return resnames
-
-
-    def _reverseGraph(self, g):
-        all_values = list()
-        for item in g.values():
-            for subitem in item:
-                if not (subitem in all_values):
-                    all_values.append(subitem)
-        
-        rg=dict.fromkeys(all_values)
-        for key in rg:
-            rg[key] = []
-        for value in all_values:
-            for key in g.keys():
-                if value in g[key]:
-                    rg[value].append(key)
-        for value in g.keys():
-            if not(value in rg.keys()):
-                rg[value]=[]
-        return rg
         
         
     def _setDumping(self, d):

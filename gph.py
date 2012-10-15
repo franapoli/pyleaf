@@ -24,19 +24,20 @@ import sys
 class graph(dict):
     def getNodes(self):
         nodes = self.keys()
-        for value in self.__reverseDict().keys():
+        for value in self._reverseDict().keys():
             if not(value in nodes):
                 nodes.append(value)
         return nodes
 
     def getInNodes(self, node):        
-        g = self.__reverseDict()
-        log.send('in-nodes of ' + str(node) + ' are: ' + str(g[node]), 3)
-        return g[node]
+        # nodes are returned in edge-id order
+        g = self._reverseDict()        
+        ids = [self.getEdgeAttrib((x, node), 'id') for x in g[node]]
+        return [x[1] for x in sorted(zip(ids, g[node]))]
         
     def getOutNodes(self, node):
-        log.send('out-nodes of ' + str(node) + ' are: ' + str(self[node]), 3)
-        return self[node]
+        ids = [self.getEdgeAttrib((node, x), 'id') for x in self[node]]
+        return [x[1] for x in sorted(zip(ids, self[node]))]
         
     def isLeaf(self, node):
         return self[node]==[]
@@ -57,7 +58,7 @@ rankdir=LR;
         f.close()
         os.system('dot -Tpdf -o' + ofile + '.pdf ' + ofile)
 
-    def __reverseDict(self):
+    def _reverseDict(self):
         g = self
         all_values = list()
         for item in g.values():
@@ -76,8 +77,8 @@ rankdir=LR;
             if not(value in rg.keys()):
                 rg[value]=[]
 
-        for key in rg.keys():
-            rg[key]=sorted(rg[key])
+        #for key in rg.keys():
+        #   rg[key]=sorted(rg[key])
 
         return rg
 
@@ -144,11 +145,13 @@ rankdir=LR;
         for key in self.keys():
             del(self[key])
 
-        edges = re.findall(r'(\d+->\d+) \[(.*)\]', open('out.dot').read())
+        edges = re.findall(r'(\d+->\d+) \[(.*)\]', a)
         #edges = re.findall(r'\d+->\d+', a)
         nodelines = re.findall(r'(\d+) \[ (.*)\]', a)
         nodes = list()        
-        
+
+        #import pdb;pdb.set_trace()
+
         for node in nodelines:
             nodeid = node[0]
             nodename = ''
