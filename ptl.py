@@ -409,7 +409,85 @@ class protocol():
         if not os.path.exists('leaf.png'):
             shutil.copyfile(logof, 'leaf.png')
 
+    def providePar(self, res):
+        if not type(res) == list:
+            temp = list()
+            temp.append(res)
+            res = temp
 
+        D = self._findDependancies(res)
+        D.update(res)
+        states = self._getBestStates(D)
+
+        dbgstr('The following resources will be loaded from disk: '+
+               str(states[1]))
+        dbgstr('The following resources will need production: '+
+               str(states[2]))
+        needbuild = states[2]
+
+        while True:
+            canrun = self._findRunnable(needbuild)
+            dbgstr('The following nodes can run in parallel: '+
+                   str(canrun))
+            self._runNodes(canrun)
+            needbuild=[x for x in needbuild if not x in canrun]
+
+            if len(canrun)==0:
+                break
+
+    def _runNodes(self, nodes):
+        from multiprocessing import Process, Queue
+        results = Queue()
+        tasks = list()
+        for node in nodes:
+            nodeparams = self._runNodePar(node)
+            tasks.append(
+                Process(target=self._callModPar, args=(node, nodeparams, results,))
+                )
+        for task in tasks: task.start()
+        for task in tasks: task.join()
+
+        for task in tasks:
+            taskres = results.get()
+            resname = self._buildResName(taskres[0], None, taskres[1])
+            dbgstr('Requesting add resource: ' + taskres[0], 2)
+            t=0
+            self._newResource(resname, taskres[1], t)
+
+
+
+    def _findRunnable(self, nodes):
+        #finds nodes whose inputs are available
+        runnable = list()
+        #import pdb; pdb.set_trace()
+        for node in nodes:
+            if all([self._isAvailable(n) for n in self._getInNodes(node)]):
+                runnable.append(node)
+        return runnable
+        
+    def _getBestStates(self, D):
+        # categorizes resources to reflect best state. I.e., if a resource is
+        # both available and dumped, it is returned in the set of available resources.
+        ar = list()
+        dr = list()
+        nr = list()
+        for d in D:
+            if self._isAvailable(d):
+                ar.append(d)
+            elif self._isDumped(d):
+                dr.append(d)
+            else:
+                nr.append(d)
+                
+        return ar,dr,nr
+
+    def _findDependancies(self, nodes):
+        # builds a list of all resources that are necessary
+        # in order to build nodes
+        nec = set()
+        for n in nodes:
+            nec.update(self._getGraph().getAncestors(n))
+        return nec
 
     def _updateModules(self, mods):
         untrustme = list()
@@ -573,6 +651,14 @@ class protocol():
         
     def _addResource(self, name, res):
         self._resmap[name]=res
+
+    def _getNodeNames(self):
+        return self._getGraph().getNodes()
+        
+    def _isResFile(self, res):
+        isit = res.isFile()
+        if isit : dbgstr(str(res) + ' is a file.')
+        return isit
             
     def _provideResource(self, resname):
         dbgstr('Providing resource: ' + str(resname), 2)
@@ -589,14 +675,6 @@ class protocol():
             dbgstr('Resource not found. I need to run first: ' + str(resname))
             self._runNode(resname)
             return self._getResource(resname)
-
-    def _getNodeNames(self):
-        return self._getGraph().getNodes()
-        
-    def _isResFile(self, res):
-        isit = res.isFile()
-        if isit : dbgstr(str(res) + ' is a file.')
-        return isit
 
     def _runNode(self, node):
         dbgstr('Running node: ' + str(node))
@@ -623,36 +701,45 @@ class protocol():
             else:
                 nodeparams.append(thisnode_inputs)
         
-        ###sorting basing on ids        
-        ##ids = [self._getGraph().getAttrib(_node, 'id') for _node in input_nodes]
-        ##nodeparams=[one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
-
-        ###sorting basing on alphabetic order of module name
-        ##nodeparams=[one for (one,two) in sorted(zip(nodeparams, input_nodes), key = lambda x:x[1])]
-        
-        ##import pdb; pdb.set_trace()
-
-        ## the following is needed since the dict structure does not preserve
-        ## order (the order output by 
-        # gettind edge ids: params will be ordered according to this
-        # ids = [self._getGraph().getEdgeAttrib((inp, node), 'id') for inp in input_nodes]
-        # ids = [int(x) for x in ids]
-        # nodeparams = [one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]
-
         dbgstr('Ready to run: ' + node, 2)
         dbgstr('through ' + str(self._getModule(node).getValue()), 2)
         dbgstr('on input:\n\t' + str(nodeparams), 3)
         
-
-
         newres, newresname = self._callMod(node, nodeparams)
         dbgstr('Build took ' + str(self._resmap[newresname]._buildtime))
 
         return newres
+
+    def _runNodePar(self, node):
+        dbgstr('Running node: ' + str(node))
         
+        nodeparams = list()        
+        input_nodes = self._getInNodes(node)
+        for item in input_nodes:
+            thisnode_inputs = list()
+            neededres = item
+            this_params = self._getResource(neededres)
+            if type(this_params.getValue())==list:
+                dbgstr('Resource type is: list.', 2)
+                for this_param in this_params.getValue():
+                    thisnode_inputs.append(this_param)
+            elif self._isResFile(this_params):
+                dbgstr('Resource type is: file.', 2)
+                thisnode_inputs.append(this_params.getValue())
+            else:
+                dbgstr('Resource type is: ' + str(type(this_params.getValue())), 2)
+                thisnode_inputs.append(this_params.getValue())
+            if len(thisnode_inputs)==1:
+                nodeparams.append(thisnode_inputs[0])
+            else:
+                nodeparams.append(thisnode_inputs)
+        
+        return nodeparams
+
     def _getModule(self, name):
         return self._modules[name]
         
+
     def _callMod(self, node, nodeparams):
         t = time.time()
 
@@ -694,6 +781,25 @@ class protocol():
         self._newResource(newresname, newres, t)
             
         return newres, newresname
+
+    def _callModPar(self, node, nodeparams, queue):
+        t = time.time()
+           
+        if len(nodeparams)==0:
+            dbgstr('No input for: ' + str(node), 1)
+            newres = self._modules[node].getValue()()
+    
+        else:
+            dbgstr('Running node: ' + node)
+            newres = self._modules[node].getValue()(*nodeparams)
+
+        dbgstr('Produced list:\n\t' + str(newres), 3)
+        t = time.time() - t
+            
+        #the following is needed to correctly match node
+        #and resource when going parallel
+        queue.put((node, newres))
+
         
     def _checkIsFunction(self, x):
         #return hasattr(self._modules[node].getValue(), '_call_'):

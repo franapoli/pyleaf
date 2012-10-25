@@ -58,6 +58,19 @@ rankdir=LR;
         f.close()
         os.system('dot -Tpdf -o' + ofile + '.pdf ' + ofile)
 
+    def getAncestors(self, node):
+        anc = set()
+        g = self._reverseDict()
+        stack = list()
+        stack.append(node)
+
+        while len(stack) != 0:
+            n = stack.pop()
+            for parent in g[n]:
+                anc.add(parent)
+                stack.append(parent)
+        return anc            
+
     def _reverseDict(self):
         g = self
         all_values = list()
@@ -150,7 +163,7 @@ rankdir=LR;
         nodelines = re.findall(r'(\d+) \[ (.*)\]', a)
         nodes = list()        
 
-        #import pdb;pdb.set_trace()
+#        import pdb;pdb.set_trace()
 
         for node in nodelines:
             nodeid = node[0]
