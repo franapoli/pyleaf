@@ -17,7 +17,7 @@
 #     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 import os
-from leaf import log
+from pyleaf import log
 import pickle
 import inspect
 
@@ -55,12 +55,14 @@ class resource():
         if self.isDumped():
             log.send(self.name() + ' is dumped in ' + self._path + ': loading it.')
             res = pickle.load(open(self._path, 'rb'))
+            ## Now it should be a "self = res" but I currently don't
+            ## trust that.
             self._timestamp = res._timestamp
             self._buildtime = res._buildtime
+            self._fingerprint = res._fingerprint
             self.setDumpPath(res.getDumpPath())
             self.setIsFile(res.isFile())
             self.setValue(res.getValue())
-            self.updateFingerprint()
         else:
             log.send(self.name() + ' is not dumped.', 2)
             
@@ -77,7 +79,7 @@ class resource():
             log.send('Dumping is switched off, so skipping.', 2)
             return
             
-        log.send('Dumping resource: ' + self._name)
+        log.send('Dumping resource: ' + self._name ,2)
         log.send('object: ' + str(self), 3)
         log.send('value: ' + str(self._contents), 3)
         log.send('fingerprint: ' + str(self._fingerprint), 3)

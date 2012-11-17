@@ -23,9 +23,9 @@ Created on Fri Oct 22 15:59:38 2010
 """
 import os
 import inspect
-from leaf.gph import graph
-from leaf import log
-from leaf.ptl import protocol
+from pyleaf.gph import graph
+from pyleaf import log
+from pyleaf.ptl import protocol
 import copy
 from imp import reload
 
@@ -36,14 +36,15 @@ class project():
     defined inside a module whose name is passed to the leaf.project constructor.
     """
     
-    def __init__(self, modulename, leafprot = ''):
+    def __init__(self, modulename, leafprot, lglSrcOff=0):
+        self._lglSrcOff = lglSrcOff
         self._modulename = modulename        
         self._metafolder = 'leaf_' + modulename        
         if not os.path.exists(self._metafolder):
             os.mkdir(self._metafolder)
-        self._leafProtName=leafprot
+        self._leafProt=leafprot
         self._updateUserModule()
-        self._initGraphs(self._seekforProt(leafprot))
+        self._initGraphs(leafprot)
 
     def _extract_doc(self, lglprot):
         import re
@@ -65,47 +66,46 @@ class project():
         if gname in hislocals.keys():
             return  hislocals[gname]
         else:
-            raise NameError('I couldn''t bind '+gname+' to any of your defined objects.')
+            raise NameError('I couldn''t bind '+gname+
+                            ' to any of your defined objects.')
         
 
     def _updateGraphs(self, leafprot):
-        if leafprot != self._leafProtName:
-            newGraph = graph()
-            newGraph.fromLeaf(leafprot)
+        newGraph = graph()
+        newGraph.fromLeaf(leafprot, self._lglSrcOff)
 
             #TODO: the following includes stuff copy-pasted
             #from _initGraphs. Should be restructured.
-            self._graph = newGraph
+        self._graph = newGraph
 
-            altgraphs = self._generateAltGraphs()
-            mods = self._seekforMods()
-            
+        altgraphs = self._generateAltGraphs()
+        mods = self._seekforMods()
+        
             #import pdb; pdb.set_trace()
 
-            for gname in altgraphs.keys():
-                if str(gname) != '':
-                    altfolder = os.path.join(self._metafolder,
-                                             str(gname).strip('[]').replace(', ','').replace('\'', ''))
-                else:
-                    altfolder = self._metafolder.strip('[]').replace(', ','').replace('\'', '')
+        for gname in altgraphs.keys():
+            if str(gname) != '':
+                altfolder = os.path.join(self._metafolder,
+                                         str(gname).strip('[]').\
+                                             replace(', ','').replace('\'', ''))
+            else:
+                altfolder = self._metafolder.strip('[]').\
+                    replace(', ','').replace('\'', '')
+
                 if not os.path.exists(altfolder):
                     os.mkdir(altfolder)
                 
                 #self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
                 self.protocols[gname]._setMetaFolder(altfolder)
-                g = self.protocols[gname]._getGraph()
-                g.toPdf(altfolder+'/graph.dot')
+                g = self.protocols[gname]._getGraph()                
                 self.protocols[gname]._update(altgraphs[gname], mods)
-
-
-                        
+                
             
     def _initGraphs(self, leafprot):
         if leafprot == '':
             leafprot = self._guessLeafProt()
 
-        if leafprot != self._leafProtName:
-            self._graph.fromLeaf(leafprot)
+        self._graph.fromLeaf(leafprot, self._lglSrcOff)
         
         mods = self._seekforMods()
 
@@ -113,13 +113,16 @@ class project():
         for gname in altgraphs.keys():
             if str(gname) != '':
                 altfolder = os.path.join(self._metafolder,
-                                         str(gname).strip('[]').replace(', ','').replace('\'', ''))
+                                         str(gname).strip('[]').\
+                                             replace(', ','').replace('\'', ''))
             else:
-                altfolder = self._metafolder.strip('[]').replace(', ','').replace('\'', '')
+                altfolder = self._metafolder.strip('[]').\
+                    replace(', ','').replace('\'', '')
             if not os.path.exists(altfolder):
                 os.mkdir(altfolder)
-
-            self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder, self._extract_doc(leafprot))
+                
+            self.protocols[gname]=protocol(altgraphs[gname], mods,\
+                                               altfolder, self._extract_doc(leafprot))
             #self.protocols[gname]._getGraph().toPdf(altfolder+'/graph.dot')
             #if not os.path.exists('wdir'):
             #    os.mkdir('wdir')
@@ -204,11 +207,7 @@ class project():
         else:
             log.send('Loading user module.')
             self._usermodule = __import__(self._modulename)
-        #if not self._is_first_import:
-         #   log.send('Reloading user module.')
-          #  reload(self._usermodule)
-        #
-        self._is_first_import = False
+
         log.send('Your module is: ' + str(self._usermodule), 2)
 
         return self._usermodule
@@ -262,7 +261,7 @@ class project():
         Function has no return value.
         """
         self._updateUserModule()
-        gname = self._seekforProt(self._leafProtName)        
+        gname = self._leafProt
         self._updateGraphs(gname)
             
     def run(self):
@@ -304,6 +303,6 @@ class project():
     _graph = graph()
     _name = ''
     _metafolder = ''
-    _leafProtName = ''
+    _leafProt = ''
     _altgraphs = dict()
-    _is_first_import = True
+    _lglSrcOff = 0

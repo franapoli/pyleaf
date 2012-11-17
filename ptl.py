@@ -25,8 +25,8 @@ Created on Fri Oct 22 15:59:38 2010
 import os
 import pickle
 import inspect
-from leaf.log import send as dbgstr
-from leaf.rrc import resource
+from pyleaf.log import send as dbgstr
+from pyleaf.rrc import resource
 import copy
 import inspect
 import time        
@@ -61,10 +61,9 @@ class protocol():
             newres = resource(res, folder+'/'+res+'.res')
             #print res, newres
             self._addResource(res, newres)
-        
+
         for mod in self._getNodeNames():
             newres = resource(mod, folder+'/'+mod+'.mod')
-            newres.setDump(True)
             self._modules[mod] = newres
 
         untrustme2 = self._updateModules(mods)
@@ -168,7 +167,7 @@ class protocol():
             self._resmap[filtername].clear()
 
     def undump(self, filtername):
-        """Undumps a resource."""
+        """Undumps a resource (removes cached version from disk)."""
         if type(filtername) != str:
             filtername = filtername.__name__
         if self._isDumped(filtername):
@@ -201,11 +200,12 @@ class protocol():
     def trust(self, who, what):
         """Assign a resource to a filter without invalidating dependent resources."""
         if type(who) == str:
-            dbgstr('I\'m assuming that using ' + str(what) + ' for ' + who + ' won\'t have consequences on other nodes.', 0)
             self._setMod(who,what)
+            dbgstr('I\'m assuming that using ' + str(what) + ' for ' + who + ' won\'t have consequences on other nodes.', 0)
         elif type(who) == tuple:
-            dbgstr('I\'m assuming that using your object of type ' + str(type(what)) + ' for ' + str(who) + ' won\'t have consequences on other nodes.', 0)
             self._addResource(who,what)        
+            dbgstr('I\'m assuming that using your object of type ' + str(type(what)) + ' for ' + str(who) + ' won\'t have consequences on other nodes.', 0)
+
         
     def list(self):
         """Lists the state of all resources."""
@@ -613,8 +613,8 @@ class protocol():
         dbgstr('Modules are: ' + str(self._modules), 3)
         #dbgstr('with source: ' + str(self._modcontents), 3)
                 
-    def _dumpResource(self, res):
-        self._getResource(res).dump()
+    # def _dumpResource(self, res):
+    #     self._getResource(res).dump()
         
     def _newResource(self, resname, resval, t):
         dbgstr('Updating resource: ' + resname, 2)
@@ -623,7 +623,9 @@ class protocol():
         self._getResource(resname).updateFingerprint()
         self._getResource(resname)._buildtime = t
         self._getResource(resname)._timestamp = time.asctime()
-        self._dumpResource(resname)
+        dbgstr('Dumping resource: ' + resname)
+        self._getResource(resname).dump()
+        
         
     def _clearFilter(self, nodename):
         if self._isLeaf(nodename):

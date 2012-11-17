@@ -18,7 +18,7 @@
 
 import re
 import os
-from leaf import log
+from pyleaf import log
 import sys
 
 class graph(dict):
@@ -113,11 +113,10 @@ rankdir=LR;
             if node in targets:
                 del(targets[targets.index(node)])
 
-    def lgl2dot(self, leafprot):
+    def lgl2dot(self, leafprot, erroffset):
         f=open('leafprot.lf', 'w')
         f.write(leafprot)
         f.close()
-
 
         def findLglcBin():
             for path in os.environ["PATH"].split(os.pathsep):
@@ -131,16 +130,18 @@ rankdir=LR;
         lglcbin = findLglcBin()
         if not os.access(lglcbin, os.X_OK):
             raise NameError('Error while running binary ' +\
-                                lglcbin +'. Please make sure you have permissions to run it.')
+                                lglcbin +
+                            '. Please make sure you have proper permissions.')
 
-        t=os.system(os.path.join(sys.prefix, lglcbin) + ' leafprot.lf')
+        t=os.system(os.path.join(sys.prefix, lglcbin) +
+                    ' leafprot.lf -l' + str(erroffset))
         if t!=0:
             raise NameError('lglc binary returned an error: please check its output.')
         #t=os.system('dot -Tpdf leafprot.lf.dot -otemp.pdf')
         #if t!=0:
         #    raise NameError('Problems running dot: have you installed it?')
                                 
-        a = open('out.dot','r').read()
+        a = open('leafprot.lf.dot','r').read()
         return a
 
     def setEdgeAttrib(self, edge, key, value):
@@ -149,11 +150,11 @@ rankdir=LR;
     def getEdgeAttrib(self, edge, key):
         return self._edgeattribs[edge, key]
 
-    def fromLeaf(self, leafprot):
+    def fromLeaf(self, leafprot, erroffset):
         self._nodeattribs=dict()
         self._edgeattribs=dict()
 
-        a = self.lgl2dot(leafprot)
+        a = self.lgl2dot(leafprot, erroffset)
 
         for key in self.keys():
             del(self[key])
@@ -208,4 +209,4 @@ rankdir=LR;
         
     _nodeattribs = dict()
     _edgeattribs = dict()
-    
+
