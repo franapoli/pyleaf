@@ -131,17 +131,18 @@ class protocol():
 
     def run(self):
         """Provides all leaf (final) resources."""
-        res = dict()
+        res = None
         allok = True
-        for leaf in self._getLeaves():
+        l = self._getLeaves()
+        for leaf in l:
             resname = leaf
             if not self._isAvailable(resname)and not self._isDumped(resname):
                 allok = False
-            res[leaf]=self.provide(resname)
+        
         if allok:
-            dbgstr('Nothing to be done. Zzz...', 0)
+            dbgstr('Nothing to be done. Zzz...')
         else:
-            dbgstr('Done: all leaves available.', 0)
+            res = self.provide(l)
         return res
     
     def untrust(self, nodename):
@@ -174,7 +175,7 @@ class protocol():
             dbgstr('Undumping resource: ' + str(filtername))
             self._getResource(filtername).clearDump()
 
-    def provide(self, resname):
+    def provideSerial(self, resname):
         """Provides a resource.
         
         The resource is returned if available, loaded from disk if dumped, produced
@@ -409,38 +410,66 @@ class protocol():
         if not os.path.exists('leaf.png'):
             shutil.copyfile(logof, 'leaf.png')
 
-    def providePar(self, res):
+    def _prettyPrint(self, x):
+        return str(x).strip('[]').replace("'","")
+
+    def provide(self, res):
+        t = time.time()
+
         if not type(res) == list:
             temp = list()
             temp.append(res)
             res = temp
 
+        for i,r in enumerate(res):
+            if type(res[i]) != str:
+                res[i] = res[i].__name__
+
         D = self._findDependancies(res)
         D.update(res)
         states = self._getBestStates(D)
 
-        dbgstr('The following resources will be loaded from disk: '+
-               str(states[1]))
-        dbgstr('The following resources will need production: '+
-               str(states[2]))
+        if len(states[1]) > 0:
+            dbgstr('The following resources will be loaded from disk: '+
+                   self._prettyPrint(states[1]))
+            for node in states[1]:
+                self._provideResource(node)
+
+        if len(states[2]) > 0:
+            dbgstr('The following resources will need production: '+
+                   self._prettyPrint(states[2]))
         needbuild = states[2]
 
         while True:
             canrun = self._findRunnable(needbuild)
-            dbgstr('The following nodes can run in parallel: '+
-                   str(canrun))
+            if len(canrun) > 1:
+                dbgstr('The following nodes can run in parallel: '+
+                       self._prettyPrint(canrun))
+
             self._runNodes(canrun)
             needbuild=[x for x in needbuild if not x in canrun]
 
             if len(canrun)==0:
                 break
 
+        builtres = list()
+        for resname in res:
+            builtres.append(self._resmap[resname].getValue())
+
+        if len(states[1]) > 0 or len(states[2]) > 0:
+            dbgstr('Done in: ' + self._readabletime(time.time() - t) + '.')
+
+        if len(builtres) > 1:
+            return builtres
+        else:
+            return builtres[0]
+
     def _runNodes(self, nodes):
         from multiprocessing import Process, Queue
         results = Queue()
         tasks = list()
         for node in nodes:
-            nodeparams = self._runNodePar(node)
+            nodeparams = self._getNodePar(node)
             tasks.append(
                 Process(target=self._callModPar, args=(node, nodeparams, results,))
                 )
@@ -451,10 +480,14 @@ class protocol():
             taskres = results.get()
             resname = self._buildResName(taskres[0], None, taskres[1])
             dbgstr('Requesting add resource: ' + taskres[0], 2)
-            t=0
+            t=taskres[2]
             self._newResource(resname, taskres[1], t)
 
-
+    def time(self, node):
+        if type(node) != str:
+            node = node.__name__
+        return(self._resmap[node]._timestamp,
+               self._resmap[node]._buildtime)
 
     def _findRunnable(self, nodes):
         #finds nodes whose inputs are available
@@ -669,7 +702,7 @@ class protocol():
             dbgstr('Resource content is:\n' + str(self._getResource(resname)) ,4)
             return self._getResource(resname)
         elif self._isDumped(resname):
-            dbgstr('Found on disk: ' + str(resname))
+            dbgstr('Found on disk: ' + str(resname), 2)
             self._addResource(resname, self._loadResource(resname))
             dbgstr('Resource content is:\n' + str(self._getResource(resname)), 4)
             return self._resmap[resname]
@@ -712,9 +745,8 @@ class protocol():
 
         return newres
 
-    def _runNodePar(self, node):
-        dbgstr('Running node: ' + str(node))
-        
+    def _getNodePar(self, node):
+
         nodeparams = list()        
         input_nodes = self._getInNodes(node)
         for item in input_nodes:
@@ -751,7 +783,7 @@ class protocol():
 
             
         elif len(nodeparams)==0:
-            dbgstr('No input for: ' + str(node), 1)
+            dbgstr('No input for: ' + str(node), 2)
             dbgstr('Running node: ' + node)
             
             newres = self._modules[node].getValue()()
@@ -785,22 +817,25 @@ class protocol():
         return newres, newresname
 
     def _callModPar(self, node, nodeparams, queue):
-        t = time.time()
            
+        dbgstr('Running node: ' + node)
+        funct = self._modules[node].getValue()
         if len(nodeparams)==0:
-            dbgstr('No input for: ' + str(node), 1)
-            newres = self._modules[node].getValue()()
-    
+            dbgstr('No input for: ' + str(node), 2)
+            t = time.time()
+            newres = funct()
+            t = time.time() - t    
         else:
-            dbgstr('Running node: ' + node)
-            newres = self._modules[node].getValue()(*nodeparams)
+            t = time.time()
+            newres = funct(*nodeparams)
+            t = time.time() - t
 
         dbgstr('Produced list:\n\t' + str(newres), 3)
-        t = time.time() - t
+
             
         #the following is needed to correctly match node
         #and resource when going parallel
-        queue.put((node, newres))
+        queue.put((node, newres, t))
 
         
     def _checkIsFunction(self, x):
