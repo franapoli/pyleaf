@@ -41,7 +41,10 @@ class resource():
         
     def update(self):
         if self.changed():
-            log.send(self.name() + ' has changed: updating.')
+            if self._fingerprint != None:
+                log.send(self.name() + ' has changed: updating.')
+            else:
+                log.send(self.name() + ' is new: building fingerprint.')
             self.updateFingerprint()
             self.dump()
         else:
