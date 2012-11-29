@@ -42,9 +42,10 @@ class project():
         self._metafolder = 'leaf_' + modulename        
         if not os.path.exists(self._metafolder):
             os.mkdir(self._metafolder)
-        self._leafProt=leafprot
         self._updateUserModule()
-        self._initGraphs(leafprot)
+        self._protName = leafprot
+        self._leafProt=self._seekforProt(leafprot)
+        self._initGraphs(self._leafProt)
 
     def _extract_doc(self, lglprot):
         import re
@@ -66,8 +67,8 @@ class project():
         if gname in hislocals.keys():
             return  hislocals[gname]
         else:
-            raise NameError('I couldn''t bind '+gname+
-                            ' to any of your defined objects.')
+            raise NameError('I couldn''t bind "'+gname+
+                            '" to any of your defined objects.')
         
 
     def _updateGraphs(self, leafprot):
@@ -75,7 +76,7 @@ class project():
         newGraph.fromLeaf(leafprot, self._lglSrcOff)
 
             #TODO: the following includes stuff copy-pasted
-            #from _initGraphs. Should be restructured.
+            #from i_nitGraphs. Should be restructured.
         self._graph = newGraph
 
         altgraphs = self._generateAltGraphs()
@@ -97,7 +98,7 @@ class project():
                 
                 #self.protocols[gname]=protocol(altgraphs[gname], mods, altfolder)
                 self.protocols[gname]._setMetaFolder(altfolder)
-                g = self.protocols[gname]._getGraph()                
+                #g = self.protocols[gname]._getGraph()                
                 self.protocols[gname]._update(altgraphs[gname], mods)
                 
             
@@ -261,8 +262,8 @@ class project():
         Function has no return value.
         """
         self._updateUserModule()
-        gname = self._leafProt
-        self._updateGraphs(gname)
+        g = self._seekforProt(self._protName)
+        self._updateGraphs(g)
             
     def run(self):
         """Calls run on all protocols of the project."""
@@ -306,3 +307,4 @@ class project():
     _leafProt = ''
     _altgraphs = dict()
     _lglSrcOff = 0
+    _protName = ''
