@@ -136,7 +136,7 @@ rankdir=LR;
         t=os.system(os.path.join(sys.prefix, lglcbin) +
                     ' leafprot.lf -l' + str(erroffset))
         if t!=0:
-            raise NameError('lglc binary returned an error: please check its output.')
+            raise NameError('lglc returned an error: please check its output.')
         #t=os.system('dot -Tpdf leafprot.lf.dot -otemp.pdf')
         #if t!=0:
         #    raise NameError('Problems running dot: have you installed it?')

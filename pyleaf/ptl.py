@@ -49,13 +49,7 @@ class protocol():
         self._doc = doc
 
         self._graphres = resource('graph', os.path.join(folder,'graph.grp'))
-
-        self._graphres.setValue(graph)
-        if self._graphres.changed():
-            if self._graphres.isDumped():
-                untrustme1 = self._manageGraphChange(self._graphres.getFingerprint())
-        self._graphres.update()
-
+        untrustme1 = self._updateGraph(graph)
 
         for res in self._getResNames():
             newres = resource(res, folder+'/'+res+'.res')
@@ -85,15 +79,22 @@ class protocol():
 #                    ostr += str(attrib[1])+'='+str(self._nodeattribs[attrib])+', '
 #            dbgstr(ostr[0:-2], 0)
         
+    def _updateGraph(self, graph):
+        self._graphres.setValue(graph)
+        untrustme1 = list()
+        if self._graphres.changed():
+            if self._graphres.isDumped():
+                untrustme1 = self._manageGraphChange(self._graphres.getFingerprint())
+        self._graphres.update()
+        return untrustme1
+
+
     def _update(self, graph, mods):
         untrustme1 = list()
         untrustme2 = list()
         dbgstr('New graph is: ' + str(graph), 3)
         dbgstr('New mods are: ' + str(mods), 3)
-        untrustme1 = self._manageGraphChange(graph)
-        self._graphres.setValue(graph)
-        self._graphres.update()
-#        import pdb; pdb.set_trace()
+        untrustme1 = self._updateGraph(graph)
         untrustme2 = self._updateModules(mods)
         for mod in untrustme1:
             self.untrust(mod)
@@ -146,33 +147,41 @@ class protocol():
         return res
     
     def untrust(self, nodename):
-        """Clears and undumps resource and all its dependent.""" 
-        #if self._isLeaf(nodename):
-#        import pdb; pdb.set_trace()
-        self.undump(nodename)
-        self.clear(nodename)
+        """Clears and undumps resource and all its dependent."""
+        if type(nodename) != str:
+            nodename = nodename.__name__
+
+        self.reset(nodename)
                 
         dependents = self._getOutNodesRecursive(nodename)
         for res in self._getResNames():
             if(res in dependents):
-                self.undump(res)
-                self.clear(res)
+                self.reset(res)
 
 
-    def clear(self, filtername):
+    def clear(self, filtername, verbose = True):
         """Clears a resource.""" 
         if type(filtername) != str:
             filtername = filtername.__name__
         if self._isAvailable(filtername):
-            dbgstr('Clearing resource: ' + str(filtername))
+            if verbose:
+                dbgstr('Clearing resource: ' + str(filtername))
             self._resmap[filtername].clear()
 
-    def undump(self, filtername):
+    def reset(self, filtername):
+        """Clears and undump a resource"""
+        if self._isAvailable(filtername) or self._isDumped(filtername):
+            dbgstr('Resetting resource: ' + str(filtername))
+        self.clear(filtername, False)
+        self.undump(filtername, False)
+
+    def undump(self, filtername, verbose = True):
         """Undumps a resource (removes cached version from disk)."""
         if type(filtername) != str:
             filtername = filtername.__name__
         if self._isDumped(filtername):
-            dbgstr('Undumping resource: ' + str(filtername))
+            if verbose:
+                dbgstr('Undumping resource: ' + str(filtername))
             self._getResource(filtername).clearDump()
 
     def provideSerial(self, resname):
@@ -200,6 +209,9 @@ class protocol():
         
     def trust(self, who, what):
         """Assign a resource to a filter without invalidating dependent resources."""
+        if type(who) != str:
+            who = who.__name__
+
         if type(who) == str:
             self._setMod(who,what)
             dbgstr('I\'m assuming that using ' + str(what) + ' for ' + who + ' won\'t have consequences on other nodes.', 0)
