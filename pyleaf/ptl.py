@@ -239,7 +239,8 @@ class protocol():
     def export(self, ofile, layout='LR'):
         """Exports the protocol to a pdf file."""
         import textwrap
-        ofile = self._metafolder+'/'+ofile
+        #ofile = self._metafolder+'/'+ofile
+        ofile = ofile
         f=open(ofile, 'w')
         f.write('digraph G {'+
                 'node [shape=box, style=rounded];'+

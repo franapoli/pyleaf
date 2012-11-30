@@ -131,7 +131,7 @@ rankdir=LR;
         if not os.access(lglcbin, os.X_OK):
             raise NameError('Error while running binary ' +\
                                 lglcbin +
-                            '. Please make sure you have proper permissions.')
+                            '. Please make sure that it is the correct LGL Compiler binary and that you have proper permissions to run it.')
 
         t=os.system(os.path.join(sys.prefix, lglcbin) +
                     ' leafprot.lf -l' + str(erroffset))
