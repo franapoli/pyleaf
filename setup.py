@@ -1,14 +1,16 @@
 from distutils.core import setup
 
 setup(
-    name = "Leaf",
+    name = "pyleaf",
     packages = ["pyleaf"],
+    package_data={'pyleaf': ['resources/leaf.png','resources/style.css']},
+    #data_files=[('pyleaf', ['resources/leaf.png','resources/style.css'])],
     version = "1.0b",
-    description = "Data Analysis Pipeline Manager",
+    description = "ASCII-ART Data Analysis Pipeline Manager",
     author = "Francesco Napolitano",
     author_email = "franapoli@gmail.com",
     url = "www.neuronelab.dmi.unisa.it/leaf",
-    download_url = "http://chardet.feedparser.org/download/python3-chardet-1.0.1.tgz",
+    download_url = "",
     keywords = ["bioinformatics", "data", "pipeline"],
     classifiers = [
         "Programming Language :: Python",

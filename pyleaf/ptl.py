@@ -414,14 +414,20 @@ class protocol():
         f.write(html_footer)
         f.close()
 
-        stylef = os.path.join(sys.prefix, 'style.css')
-        logof = os.path.join(sys.prefix, 'leaf.png')
+        try:
+        ## copying external resources
+            from pkg_resources import resource_filename
+            stylef = resource_filename('pyleaf', 'resources/style.css')
+            logof = resource_filename('pyleaf', 'resources/leaf.png')
 
-        import shutil
-        if not os.path.exists('style.css'):
-            shutil.copyfile(stylef, 'style.css')
-        if not os.path.exists('leaf.png'):
-            shutil.copyfile(logof, 'leaf.png')
+        #stylef = os.path.join(sys.prefix, 'style.css')
+        #logof = os.path.join(sys.prefix, 'leaf.png')
+
+            import shutil
+            shutil.copy(stylef, '.')
+            shutil.copy(logof, '.')
+        except:
+            print('Couldn''t copy resource files. HTML file will miss style and logo.')
 
     def _prettyPrint(self, x):
         return str(x).strip('[]').replace("'","")
