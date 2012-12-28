@@ -1,5 +1,5 @@
 include COPYING.txt
 include README.txt
 include CHANGES.txt
-recursive-include docs *.html *.css *.png *.gif
-
+recursive-include doc *.html *.css *.png *.gif *.py *.txt
+recursive-include samples *.py

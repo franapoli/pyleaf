@@ -1,20 +1,21 @@
-# Copyright 2012 Francesco Napolitano, franapoli@gmail.com
+# Copyright 2012-2013 Francesco Napolitano, franapoli@gmail.com
 #
-# This file is part of Leaf.
+# This file is part of pyleaf.
 #
-#     Leaf is free software; you can redistribute it and/or modify
+#     pyleaf is free software; you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation; either version 2 of the License, or
 #     (at your option) any later version.
 #
-#     Nome-Programma is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     pyleaf is distributed in the hope that it will be useful, but
+#     WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
 #
-#     You should have received a copy of the GNU General Public License
-#     along with Nome-Programma; if not, write to the Free Software
-#     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+#     You should have received a copy of the GNU General Public
+#     License along with pyleaf; if not, write to the Free Software
+#     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+#     02110-1301 USA
 
 """
 Created on Fri Oct 22 15:59:38 2010
@@ -130,7 +131,7 @@ class protocol():
         nodeparams=[one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]      
         return tuple(nodeparams)
 
-    def run(self):
+    def run(self, serial = False):
         """Provides all leaf (final) resources."""
         res = None
         allok = True
@@ -143,7 +144,7 @@ class protocol():
         if allok:
             dbgstr('Nothing to be done. Zzz...')
         else:
-            res = self.provide(l)
+            res = self.provide(l, serial)
         return res
     
     def untrust(self, nodename):
@@ -187,8 +188,8 @@ class protocol():
     def provideSerial(self, resname):
         """Provides a resource.
         
-        The resource is returned if available, loaded from disk if dumped, produced
-        on the fly otherwise.
+        This is a legacy method. Use provide with the serial flag,
+        instead.
         """
         if type(resname) != str:
             resname = resname.__name__
@@ -275,13 +276,18 @@ class protocol():
         hours, mins = divmod(mins, 60)
         return '%02d:%02d:%02.02f' % (hours, mins, secs)
         
-    def publish(self, ofile, layout='LR'):
+    def publish(self, ofile, odir='', layout='LR'):
         """Publish the protocol to a HTML file."""
         import textwrap
         import os.path
         oname = ofile
+        if odir == '':
+            odir = 'html'
+        if not os.path.exists(odir):
+            os.mkdir(odir)
+        fullname = os.path.join(odir, ofile)
         #ofile = os.path.join(self._metafolder, ofile)
-        f=open(ofile+'.dot', 'w')
+        f=open(fullname+'.dot', 'w')
         f.write('digraph G {\n'+
                 'graph [size="20, 20"];\n' +
                 'node [shape=box, style=rounded];'+
@@ -295,7 +301,11 @@ class protocol():
             if self._isFileMod(node):
                 shape = 'note'
                 if self._isAvailable(node):
-                    output_line = '\t\t<td href="'+self._getResource(node).getValue()+'"><font POINT-SIZE="8"><u>output</u></font></td>\n'
+                    content = self._getResource(node).getValue()
+                    if isinstance(content, tuple) or isinstance(content, list):
+                        output_line = '\t\t<td href="'+'(multiple)'+'"><font POINT-SIZE="8"><u>output</u></font></td>\n'
+                    else:
+                        output_line = '\t\t<td href="'+content+'"><font POINT-SIZE="8"><u>output</u></font></td>\n'
                 else:
                     output_line = '\t\t<td><font POINT-SIZE="8"><u>not built</u></font></td>\n'                    
             else:
@@ -324,8 +334,9 @@ class protocol():
                 f.write(node + ' -> ' + onode + '\n')
         f.write('}')
         f.close()
-        t=os.system('dot -s160 -Tcmapx -o' + ofile + '.map -Tgif -o' + ofile + '.gif ' + ofile + '.dot')
-        t=os.system('dot -Tpdf -o' + ofile + '.pdf ' + ofile + '.dot')
+        t=os.system('dot -s160 -Tcmapx -o' +
+                    fullname + '.map -Tgif -o' + fullname + '.gif ' + fullname + '.dot')
+        t=os.system('dot -Tpdf -o' + fullname + '.pdf ' + fullname + '.dot')
 
         if t!=0:
             raise NameError('Problems running dot: have you installed it?')
@@ -362,7 +373,7 @@ class protocol():
 """
 
 
-        f = open(ofile+'.html', 'w')
+        f = open(fullname+'.html', 'w')
         f.write(html_header)
         f.write('<div class="breadcrumbs"><h1>' + oname + '</h1></div><div class="middle">')
         f.write('<h2>Project Summary</h2>')
@@ -424,15 +435,15 @@ class protocol():
         #logof = os.path.join(sys.prefix, 'leaf.png')
 
             import shutil
-            shutil.copy(stylef, '.')
-            shutil.copy(logof, '.')
+            shutil.copy(stylef, odir)
+            shutil.copy(logof, odir)
         except:
-            print('Couldn''t copy resource files. HTML file will miss style and logo.')
+            print('Couldn\'t copy resource files. HTML file will miss style and logo.')
 
     def _prettyPrint(self, x):
         return str(x).strip('[]').replace("'","")
 
-    def provide(self, res):
+    def provide(self, res, serial=False):
         t = time.time()
 
         if not type(res) == list:
@@ -464,8 +475,10 @@ class protocol():
             if len(canrun) > 1:
                 dbgstr('The following nodes can run in parallel: '+
                        self._prettyPrint(canrun))
+                if serial:
+                    dbgstr('But serial processing was requested!')
 
-            self._runNodes(canrun)
+            self._runNodes(canrun, serial)
             needbuild=[x for x in needbuild if not x in canrun]
 
             if len(canrun)==0:
@@ -483,24 +496,38 @@ class protocol():
         else:
             return builtres[0]
 
-    def _runNodes(self, nodes):
-        from multiprocessing import Process, Queue
-        results = Queue()
-        tasks = list()
-        for node in nodes:
-            nodeparams = self._getNodePar(node)
-            tasks.append(
-                Process(target=self._callModPar, args=(node, nodeparams, results,))
-                )
-        for task in tasks: task.start()
-        for task in tasks: task.join()
+    def _runNodes(self, nodes, serial = False):
+        if not serial:
+            from multiprocessing import Process, Queue
+            results = Queue()
+            tasks = list()
+            for node in nodes:
+                nodeparams = self._getNodePar(node)
+                tasks.append(
+                    Process(target=self._callModPar, args=(node, nodeparams, results,))
+                    )
+            for task in tasks: task.start()
+            for task in tasks: task.join()
 
-        for task in tasks:
-            taskres = results.get()
-            resname = self._buildResName(taskres[0], None, taskres[1])
-            dbgstr('Requesting add resource: ' + taskres[0], 2)
-            t=taskres[2]
-            self._newResource(resname, taskres[1], t)
+            for task in tasks:
+                taskres = results.get()
+                resname = self._buildResName(taskres[0], None, taskres[1])
+                dbgstr('Requesting add resource: ' + taskres[0], 2)
+                t=taskres[2]
+                self._newResource(resname, taskres[1], t)
+        else:
+            for node in nodes:
+                # the following mimics the parallel code to avoid
+                # changing code, but should be polished
+                from multiprocessing import Process, Queue
+                results = Queue()
+                nodeparams = self._getNodePar(node)
+                self._callModPar(node, nodeparams, results)
+                taskres = results.get()
+                resname = self._buildResName(taskres[0], None, taskres[1])
+                dbgstr('Requesting add resource: ' + taskres[0], 2)
+                t=taskres[2]
+                self._newResource(resname, taskres[1], t)
 
     def time(self, node):
         if type(node) != str:
@@ -855,6 +882,7 @@ class protocol():
         #the following is needed to correctly match node
         #and resource when going parallel
         queue.put((node, newres, t))
+        #return newres
 
         
     def _checkIsFunction(self, x):
