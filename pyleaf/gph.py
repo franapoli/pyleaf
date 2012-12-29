@@ -119,25 +119,33 @@ rankdir=LR;
         f.write(leafprot)
         f.close()
 
-        def findLglcBin():
-            for path in os.environ["PATH"].split(os.pathsep):
-                lglcbin = os.path.join(path, 'lglc')
-                if os.path.isfile(lglcbin):
-                    return lglcbin
-                else:
-                    NameError('Error while searching for lglc binary. Is it in your PATH?')
-            return lglcbin
+        ## Regression: the following will cause troubles in windows
+        ## because of the "exe" extension.
+        # def findLglcBin():
+        #     for path in os.environ["PATH"].split(os.pathsep):
+        #         lglcbin = os.path.join(path, 'lglc')
+        #         if os.path.isfile(lglcbin):
+        #             return lglcbin
+        #         else:
+        #             NameError('Error while searching for lglc binary. Is it in your PATH?')
+        #     return lglcbin
             
-        lglcbin = findLglcBin()
-        if not os.access(lglcbin, os.X_OK):
-            raise NameError('Error while running binary ' +\
-                                lglcbin +
-                            '. Please make sure that it is the correct LGL Compiler binary and that you have proper permissions to run it.')
+        # lglcbin = findLglcBin()
+        # if not os.access(lglcbin, os.X_OK):
+        #     raise NameError('Error while running binary ' +\
+        #                         lglcbin +
+        #                     '. Please make sure that it is the correct LGL Compiler binary and that you have proper permissions to run it.')
 
-        t=os.system(os.path.join(sys.prefix, lglcbin) +
+        # t=os.system(os.path.join(lglcbin) +
+        #             ' leafprot.lf -l' + str(erroffset))
+
+        t=os.system('lglc' +
                     ' leafprot.lf -l' + str(erroffset))
+
         if t!=0:
-            raise NameError('lglc returned an error: please check its output.')
+            raise NameError('Error while running lglc. '+
+                            'If I was able to run it, it produced an error message. ' +
+                            'Otherwise make sure you can successfully run lglc from a system shell.')
         #t=os.system('dot -Tpdf leafprot.lf.dot -otemp.pdf')
         #if t!=0:
         #    raise NameError('Problems running dot: have you installed it?')
