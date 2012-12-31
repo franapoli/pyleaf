@@ -1,0 +1,146 @@
+<br> <b>NOTE</b> Some contents on this page could be
+superseded. Please refer to <a href="examples.html">examples</a> page
+for current code.
+
+<h2>Pyleaf</h2> Pyleaf is a Python package able to bind Python
+functions to an LGL graph. Pyleaf needs to know the graph (just a
+string in LGL code) and where to find the functions mentioned in the
+graph as node labels. The binding between the nodes and the
+corresponding Python functions is indeed performed simply by searching
+for LGL nodes and Python functions having the same name.  With this
+information, pyleaf can build a <i>leaf.prj.project</i> Python
+object, which is the main interface to all Leaf's features. Supposing
+that a <i>str</i> object called <i>protocolmap</i> contains valid LGL
+code and the functions to bind are contained in a file
+named <i>example.py</i>, the following code builds a Leaf project:
+
+<div class="code">
+  <pre>from leaf.prj import project
+pr = project('example', 'protocolmap')</pre>
+</div>
+
+Pyleaf must be able to <i>import</i> the <i>example.py</i> file, see
+the <a href="examples.html">examples</a>.
+
+<p><h2>The <i>project</i> and <i>protocol</i> objects</h2> A Leaf project
+can include a number of protocols. This is mainly due to
+the <i>alternative protocols</i> feature that is still under
+development. An usual pyeaf project at the moment will include only one
+unnamed protocol, that can be accessed this way:
+
+<div class="code">
+<pre>
+pt = prj.protocols['']
+</pre>
+</div>
+</p>
+
+The <i>project</i> object manages higher level tasks. From the user's
+point of view, it is responsible to retrieve user's source code and
+pass it to the protocols. The <i>protocol</i> object, instead, is what
+the user interacts with when the code has already been loaded. This
+means that most pyleaf actions are performed through a <i>protocol</i>
+object, but changes in the user's source code are to be taken care of
+through the <i>project</i> object.
+
+
+
+<p><h2>Requesting a resource</h2> The <i>protocol</i> object is used
+to request a resource. If you have an LGL graph like the following:
+<div class="code">
+<pre>
+       / func2
+func1 <
+       \ func3
+;
+</pre>
+</div>
+
+
+You can ask to get the output of the node <i>func2</i> this way:
+<div class="code">
+<pre>
+>>> x = pt.provide(func2)
+</pre>
+</div>
+
+Pyleaf will look up the resource in its internal database to check if
+it is already available. If not, it will produce it. To produce it, it
+needs the output of <i>func1</i>, so it will recursively search for
+it. If also the output of <i>func1</i> is not available, it will be
+built on the fly, since it does not need any input. Now <i>func2</i>
+can be run too. At this point, if you try the following:
+<div class="code">
+<pre>
+>>> y = pt.provide(func3)
+</pre>
+</div> Pyleaf will search for the output of <i>func3</i>. Since it is
+not available, it will try to build it. Since this time the output
+of <i>func1</i> is available, pyleaf can now run
+<i>func3</i> directly. From now on, all resources in the protocol are
+available and returned immediately upon request.  </p>
+
+<p><h2>Resource management, session recovery and protocol
+consistency</h2> Pyleaf automatically <b>stores all produced
+resources</b> internally in primary memory and dumps them to the disk
+as soon as they are built the first time. The <i>provide</i> method
+first checks if a resource is <b>available</b> in primary memory; if
+not, it searches for a dump on the disk; if there is no previous dump
+the resource is built on the fly applying the process seen in the
+previous section. The newly available resource is immediately dumped
+to the disk.<br> Leaf tries to keep source code <b>consistent</b>
+with the stored resources and across nodes. To this aim, source code is stored
+together with the resources it produces. If the code is changed, Leaf
+will detect the change by comparing the working code with the stored code
+as soon as the method <i>update</i> is called, automatically
+<i>untrust</i>-ing the involved nodes. The <i>untrust</i> method
+clears the resources produced by a node and all its descendants. On
+the other hand, the <i>trust</i> method can be used to force Leaf to
+accept a given resource as the output of a node. <br>When
+a <i>project</i> object is built, the corresponding dumps are searched
+for on the disk and automatically loaded, including resources and
+source code that produced them. This way, Leaf will be able to
+persistently keep track of code changes across different working
+sessions.  </p>
+
+<p><h2>Publishing protocols</h2>The <i>publish</i> method of
+the <i>protocol</i> class produces a full hypertextual report of the
+protocol. It includes some general statistics about the protocol, a
+visualization of the graph, details and source code for each node. The
+graph (or "protocol map") is also hypertextual, with each node
+containing links to the output files it produces on the disk. <b>The
+published protocol is the current implementation of our concept
+of <i>bioinformatic protocol</i></b>. <br>The hypertext is created as
+an HTML file in the current directory. A css style-sheet and a Leaf
+logo is also automatically added to the same directory. Future
+versions of pyleaf will allow to export such files and all the linked
+output files to a given directory.</p>
+
+<p><h2>Automatic time-space complexity monitoring</h2> Pyleaf keeps
+  track of the time needed to process each node and of the space
+  required by each node producing files (the ones identified by
+  the <i>[F]</i> flag in LGL). Such statistics are reported in the
+  <i>published</i> protocol and during computation.
+
+
+<p><h2><i>protocol</i> methods</h2> The following is a summary of the
+main operations that you can perform an a protocol. It is extracted
+from the online help of pyleaf.
+
+<table border="1px", cellpadding="20px">
+  <tr><td>clear</td><td>Clears a resource from RAM.</td></tr>
+  <tr><td>clearall</td><td>Clears all resources from RAM.</td></tr>
+  <tr><td>dumpOff</td><td>Switches dumping OFF.</td></tr>
+  <tr><td>dumpOn</td><td>Switches dumping ON.</td></tr>
+  <tr><td>export</td><td>Exports the graph to a pdf file, including docstrings.</td></tr>
+  <tr><td>getinputs</td><td>Collects all input resources that are input to the given node and returns a copy of them in a list.</td></tr>
+  <tr><td>list</td><td>Lists the state of all resources.</td></tr>
+  <tr><td>provide</td><td>Provides a resource. The resource is returned if available, loaded from disk if dumped, built on the fly otherwise.</td></tr>
+  <tr><td>publish</td><td>Exports a full report of the protocol to HTML.</td></tr>
+  <tr><td>rebuild</td><td>Clears a resource, then provides it.</td></tr>
+  <tr><td>run</td><td>Provides all leaf (final) resources.</td></tr>
+  <tr><td>trust</td><td>Assign a resource to a node without invalidating dependent resources.</td></tr>
+  <tr><td>undump</td><td>Clears a dumped resource from the disk.</td></tr>
+  <tr><td>undumpall</td><td>Clears all dumped resources from the disk.</td></tr>
+  <tr><td>untrust</td><td>Clears a resource and all its dependent.</td></tr>
+</table>

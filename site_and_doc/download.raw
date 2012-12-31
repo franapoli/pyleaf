@@ -1,0 +1,83 @@
+<h2>Getting Leaf</h2>Leaf is implemented as a Python
+library, which is platform-independent. On the other hand, the LGL
+compiler (lglc) is written in C++ and requires platform-specific
+binaries. You need both the components (pyleaf and lglc) to use Leaf.
+
+<h3>Getting lglc</h3>
+<ul>
+<li>Precompiled binaries are available
+for <a href="downloads/lglc-linux32.zip">32-bit Linux</a>
+and <a href="downloads/lglc-win32.zip">Windows</a>. The path to the
+lglc binary must be included in the PATH environment variable.</li>
+<li>C++ source package can be obtained from github:
+<br><br>
+$ git clone https://github.com/franapoli/lglc</li>
+<br><br>
+</ul>
+<h3>Getting pyleaf</h3>
+Three ways of getting pyleaf:
+<ul>
+<li>Pyleaf is present in PYPI. Pip users can install it with: <br><br>
+
+$ pip install pyleaf
+<br><br>
+</li>
+
+<li>The pip installation is based on a source distribution (including
+installation script and documentation) that can be downloaded directly
+from <a href="downloads/pyleaf-1.0.1b.tar.gz">here</a>.</li>
+<li>Pyleaf sources are on github (docs
+not included). In order to get pyleaf sources  with git:
+<br><br>
+$ git clone https://github.com/franapoli/pyleaf.git
+<br><br>
+</li>
+</ul>
+
+<!--
+For simplicity, different python modules are available for
+different architectures, each containing the same Python sources but
+specific <i>lglc</i> binaries.
+<ul> <li>Linux x86:
+for <a href="downloads/leaf-linux-x86-py27-1_0.zip">Python 2.6/2.7</a>
+and <a href="downloads/leaf-linux-x86-py3-1_0.zip">Python
+3+</a>.</li> <li>Ms Windows:
+for <a href="downloads/leaf-win-py27-1_0.zip">Python 2.6/2.7</a>
+and <a href="downloads/leaf-win-py3-1_0.zip">Python
+3+</a>.</li> </ul> <br>
+
+<h2>Current development version</h2>LPL sources are available on
+git-hib at [to be added].
+<br><br>
+
+<h2>Installation</h2> Unzip the Leaf package and run the following
+from the command line:
+<div class='code'>
+  <pre>python setup.py install</pre>
+</div>
+
+You may require root privileges.<br><br>
+-->
+
+<h2>Other mandatory or suggested software</h2>
+<ul>
+  <li><a href="http://www.python.org">Python</a>: <b>prerequisite</b>
+  for Leaf. Leaf is currently developed and tested on
+  Python <b>2.7.2</b>. The Python 3 version of Leaf has not been
+  thoroughly tested at the moment but seems to work.
+  <li><a href="http://www.graphviz.org">Graphviz</a>: <b>required</b>
+  for the <i>publish</i> and <i>export</i> Leaf features. Make sure
+  that you can correctly run the "dot" command from a prompt.</li>
+  <li><a href="http://www.scipy.org/">SciPy</a>: suggested scientific
+  programming modules for Python.</li>
+  <li><a href="http://rpy.sourceforge.net">Rpy</a>: suggested as
+  Python to R interface.</li>
+  <li><a href="http://www.r-project.org/">R</a>: the R language for
+  scientific programming.</li>
+</ul>
+
+<h2>License</h2> The Leaf system is composed by the pyleaf library and
+the LGL compiler (<i>lglc</i>). They are both distributed under
+the <a href="http://www.gnu.org/licenses/gpl-3.0.txt">GNU GPL</a>
+license. Leaf users should give credit by properly
+<a href="citing.html">citing</a> it.

@@ -1,0 +1,164 @@
+<h2>Concepts</h2><p> Leaf is a software tool that formalizes a number
+of concepts and ideas developed while performing real-world data analysis
+tasks. In this section such main ideas are reported and explained.</p>
+
+<h2>Protocols</h2>
+<p><i>Protocol</i> is the name that we give to <i>data flows</i> in the
+context of Bioinformatic data analysis as a parallel to the well
+established notion of protocol in Biology and Medicine. This way we
+want to stress the importance of producing bioinformatic data analytic
+processes that should be as much efficient, reproducible and communicable as
+possible. We believe that not only the general analytic approach
+should be documented (which is currently done), but every single instance of
+a data analysis process could and should be guided and documented by a
+protocol. The good news is that, by using automatic tools like Leaf, protocols
+not only add to scientific rigor, but also to efficiency and productivity.
+</p>
+
+<h2>Terminology</h2>
+Some terms used in the context of Leaf have a specific meaning or
+are borrowed from scientific areas other than Biology. The following
+table reports the most important ones.<br><br>
+<table border="1">
+<tr>
+  <td>Graph</td><td>A graph is a data structure defined by a set of
+  nodes and a set of edges between them. It can be seen as the formal
+  definition of a network. If edges are allowed to have a direction
+  (for example "from A to B but not from B to A") the graph is
+  said <i>directed</i>. If the graph has no cycle (for example a cycle can be: "from A
+  to B, from B to C and from C to A") it is said to
+  be <i>acyclic</i>.</td></tr>
+<td>Leaf protocol</td><td> A DAG (Directed and Acyclic Graph)
+    representing a data analysis flow, including node details (source
+    code and documentation). Nodes represent data processor units
+    (implemented as Python functions) and edges input/output
+    connections between nodes.</td>
+</tr>
+<tr>
+<td>Node types</td><td>Nodes with no inputs are said <i>roots</i>;
+    node with no outputs are said <i>leaves</i> (that is the origin of
+    the name <i>Leaf</i>); nodes producing files on the disk are
+    said <i>file nodes</i> (they are  <i>[F]</i>-flagged in LGL).</td>
+</tr>
+<tr>
+  <td>Resource</td><td>Any input or output of a node. Resources can
+    be <i>primary</i> (created/imported by
+    protocol's <i>roots</i>), <i>derived raw</i> (outputs of
+    non-<i>leaf</i> nodes) or <i>derived final</i> (outputs
+    of <i>leaf</i> nodes).
+  </tr>
+<tr>
+  <td>LGL</td><td>Leaf Graph Language. It is a formal language whose
+  aim is to describe a graph in a readable way.</td>
+</tr>
+<tr>
+  <td>lglc</td><td>It's the LGL compiler. It transforms LGL source
+    code into <a href="http://www.graphviz.org/">Dot</a> source
+    code. It is used internally by pyleaf.</td>
+</tr>
+<tr>
+  <td>pyleaf</td><td>The Leaf Python library. It is a set of Python classes
+  implementing the engine behind the Leaf system and the interface
+    between it and the user.</td>
+</tr>
+</table>
+<br><br>
+<h2>Intended audience</h2>
+<p>Leaf users are assumed to have <strong>programming</strong>
+skills. The purpose of Leaf is <strong>not</strong> to broaden the
+availability of data analysis tools to a wider range of people. Leaf
+is rather meant to provide a more efficient tool to people already
+having skills in custom data analysis (or that are willing to learn
+such skills). In particular, Leaf is thought
+for <strong>Python</strong>/<strong>R</strong> programmers. Python is
+a very general purpose high level scripting language and can be very
+easily interfaced with R, which is one of the best languages in the
+context of data analysis. We believe that a <em>Python+R</em> approach
+is a highly efficient scientific programming framework. <b>Python
+programmers</b> can learn and use Leaf immediately. <b>R
+programmers</b> will need to learn Python's basics and how to call R
+code through the <a href="http://rpy.sourceforge.net/">Rpy</a>
+lib.</p>
+
+<h2>Differences between Leaf and other data flow managers</h2>
+Leaf is based on a <i>thin</i> and <strong>optional</strong>
+abstraction layer. Common data flow managers use to have a tight
+dependence between the flow design interface and the source code,
+with the only way out being an import/export process. In Leaf there is
+no such dependence: the design layer and the source code can be at any
+moment used together or as separate entities. The user can choose at any
+moment to directly run pieces of code or let them be driven by the
+data flow design. Protocol-aware code can be mixed with
+protocol-unaware code. For example, a Python function can call a Leaf
+protocol object (<i>pt</i> below) to obtain a resource, than use it as input to another node
+through a direct function call:
+<div class="code">
+<pre>node2(pt.provide(node1))</pre>
+</div>
+This is possible because <i>node2</i> <b>is</b> actually a Python
+function. The example is meant to point out a range of possibilities
+that happen to be very useful in the code development and
+experimentation phases.<br><br>
+
+
+
+<h2>Best practice concepts</h2>
+<p>Any data analysis pipeline can be seen as a hierarchy of software
+routines. The protocol is a high level script that runs lower level
+functions, which can in turn call other functions. <b>Each function that
+is worth mentioning when communicating the data analysis methodology
+should be present as a node in the protocol</b>. Other functions are
+considered low-level details or auxiliary to other functions and are
+"hidden" in the source code. We use to test new functions by using
+Leaf to provide data for their inputs and we "promote" them to nodes
+(that is we include them in the LGL protocol) when their development
+becomes stable.</p>
+ 
+<h2>Integrated Development Environments for Leaf</h2>
+<p><b>Any</b> environment that is good for Python is good for Leaf, including
+any text editor + command line framework. We use <b>Emacs</b> for a number of
+reasons, including the fact that it supports both R and Python at the
+same time with basically no context switch. Unfortunately Emacs is
+hard to learn, so be prepared to face a steep learning curve or use
+any alternative solution you prefer.</p>
+ 
+<h2>Leaf design choices</h2>
+We chose to build Leaf with a text-based graph design tool and a
+Python interface. Of course we could have chosen a visual graph
+designer and any other programming language: they are open
+options. Leaf is a two-layers system and the two layers are designed
+to be <b>independent</b> (that is replaceable) on purpose. However, we
+opted for the LGL solution for the following reasons:
+
+<ul>
+  <li>The LGL compiler (as opposed to any visual framework) is
+    extremely simple and minimal from a software point of view. For
+    this reason it can also be readily ported to any computer
+    architecture supporting a shell and a C++ compiler.</li>
+  <li>LGL is thought for programmers (see "Intended audience"). As
+    programmers, we appreciate the possibility of avoiding context
+    switching between a visual environment and a text editor, particularly
+    because the design of the data flow is a very tiny part of the entire
+    development process.</li>
+  <li>LGL can be readily used in any command line based context. Many
+    computing facilities offer ssh connections to submit jobs through a
+    simple shell interface. LGL can be used even in such minimal environments.</li>
+</ul>
+
+The reasons that brought us to choose Python for the interface layer are
+not different from many of the reasons that make Python a good
+programming language in general. Some of the features that we particularly appreciated are:
+
+<ul>
+  <li>Python is a very high level language: few instructions perform
+  complex tasks. This is ideal for scientific programming.</li>
+  <li>Python is an interpreted language. It is easy to interact with
+  Python code and variables through a shell.</li>
+  <li>Nonetheless Python offers all the features of a real programming
+  language (like OOP).</li>
+  <li>Python has a number of mathematical libraries to directly perform data analysis.</li>
+  <li>For every data analysis task that is not well supported in
+  Python the <a href="http://rpy.sourceforge.net/">Rpy</a> lib can be
+  used to easily call R routines.</li>
+</ul>
+
