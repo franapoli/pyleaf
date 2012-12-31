@@ -1,0 +1,355 @@
+<h2>The Leaf Graph Language</h2> LGL is a formal language whose aim is
+to define graphs by writing a code that is as readable as possible. It
+supports two main coding style: one being very easy to write but less
+readable, the other one being a bit more complex to write but
+resulting into an almost visual representation of a graph. In the
+following paragraphs the two styles are described by means of
+examples. <i>lglc</i> is the LGL compiler, whose output is a graph
+in <a href="http://www.graphviz.org/">Dot</a> language. <i>lglc</i> is
+internally used by pyleaf.
+
+<p><h2>Designing an LGL graph the easy way</h2> You can define an LGL
+graph by composition of node chains, the latter being very
+straightforward to code. A simple chain is defined this way:
+<div class="code">
+1 -> 2 -> 3;
+</div>
+representing the following graph:<br><br>
+<img class="images" src="img/lgl/3chain.png"><br><br> You can add a
+branch to the previous graph rooted in node 2 using the following
+syntax:
+<div class="code">
+@2 -> 4;
+</div>
+The latter code, together with the former, generates the following
+graph:<br><br>
+<img class="images" src="img/lgl/4fork.png"><br><br>
+By composing graphs this way any graph can be designed very easily.</p>
+
+<p><h2>LGL syntax by examples</h2> The following is a table showing
+more advanced statements to define graphs in LGL. It can be used to
+make LGL code both more readable and powerful (few instructions to
+build complex graph structures).</p>
+<div style="width:100%; line-height:1em;">
+<table style="align:center; width:100%; border-spacing: 40px; border-width:1px;">
+  <tr>
+    <td><b>Operation</b></td>
+    <td><b>LGL code</b></td>
+    <td><b>Result</b></td>
+  </tr>
+    <td>
+      Chain
+    </td>
+    <td>
+      <pre>
+1 -> 2 -> 3;
+      </pre>
+    </td>
+    <td>
+      <img class="images" src="img/lgl/3chain.png">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Fork <br><small><i>2</i> is said "left child", <i>3</i> is said "right child"</small>
+    </td>
+    <td>
+	<pre>
+  /2
+1<
+  \3
+;
+    </pre>
+     </td>
+    <td>
+      <img class="images" src="img/lgl/3fork.png">
+    </td>
+  <tr>
+    <td>
+    Fork to fork with<br>void node
+    </td>
+    <td>
+ 	<pre>
+     /4
+   2<
+  /  \5
+1<
+  \  /6
+   .<
+     \7
+;
+    </pre>
+     </td>
+    <td>
+      <img class="images" src="img/lgl/6fork.png">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Node set
+    </td>
+    <td>
+ <pre>
+1, 2, 3;
+</pre>
+     </td>
+    <td>
+      <img class="images" src="img/lgl/3set.png">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Set to node
+    </td>
+    <td>
+ <pre>
+1, 2, 3 -> 4;
+</pre>
+     <td>
+      <img class="images" src="img/lgl/4.png">
+    </td>
+  </tr>
+  <tr>
+    <td>
+    Set to set
+    </td>
+    <td>
+ <pre>
+1, 2, 3 -> 4, 5, 6;
+</pre>
+     </td>
+    <td>
+      <img class="images" src="img/lgl/6.png">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Node reference
+    </td>
+    <td>
+<pre>
+ 1 -> 2 -> @1;	
+</pre>
+     </td>
+    <td>
+      <img class="images" src="img/lgl/2.png">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Named object:
+    </td>
+    <td>
+<pre>
+ G: 1, 2, 3;
+</pre>
+     </td>
+    <td>
+      <img class="images" src="img/lgl/3set.png">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Object copy
+    </td>
+    <td>
+<pre>
+ G: 1, 2, 3;
+ G -> G;
+</pre>
+     </td>
+    <td>
+      <img class="images" src="img/lgl/6copy.png">
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Object reference
+    </td>
+    <td>
+<pre>
+ G: 1, 2, 3;
+ G -> @G;
+</pre>
+     </td>
+    <td>
+      <img class="images" src="img/lgl/3complete.png">
+    </td>
+  </tr>
+
+</table>
+
+</div>
+
+<p><h2>Forking forks</h2> There are simple ways to edit any kind of
+graph with LGL. In some situations, however, editing an existing LGL
+graph retaining graph readability may require some practice. Consider
+the following graph:
+<div class = "code">
+<pre>
+   /B
+A <
+   \C
+;
+</pre>
+</div>
+The first golden rule of LGL syntax is: <b>nodes from different levels
+of the LGL tree will never stay on the same line in the code</b>. By
+"LGL tree" we mean the tree structure that is built by forking,
+remembering that statements like "A -> B, C" are considered node
+chains from the syntax point of view (even though they have the same
+effect of forks). Indeed, in order to add a sub-branch to the
+previous tree, we need to do as follows:
+<div class = "code">
+<pre>
+   /B
+A <
+   \  /D
+    C<
+      \E
+;
+</pre>
+</div>
+Note that node <i>C</i> was moved down one line to make room for
+node <i>D</i> and the <i>\</i> character was added to tell the
+compiler that a right branch of <i>A</i> is starting. Now
+suppose that we want to expand node <i>D</i> into another fork. It is
+done this way:
+<div class = "code">
+<pre>
+   /B
+A <
+   \      /F
+        D<
+       /  \G
+     C<
+       \E
+;
+</pre>
+</div>
+Note that in order to make room for nodes <i>F</i> and <i>G</i> we had
+to push <i>C</i> two more lines down. Moreover, the "\" edge symbol
+joining <i>A</i> and <i>C</i> is visually truncated. This is only due
+to how we read the graph, but is correct from a syntax point of
+view (it just says "right branch is starting").
+<br>There are at least three ways to avoid the gap. One is to rotate
+the sub-tree rooted in <i>C</i> (switch left child with right child),
+but this can be complicated if the graph is big. A simpler solution is
+the following:
+<div class = "code">
+<pre>
+   /B
+A <
+   \   /D -> F, G
+     C<
+       \E
+;
+</pre>
+</div>
+in which the fork rooted in <i>D</i> was replaced with a chain
+form. The most common solution, instead, is shown in the next
+paragraph.<br>  Finally, note that in order to expand the other branch
+one needs to do as follows:
+<div class = "code">
+<pre>
+      /E
+    B<
+   /  \  /F
+       D<
+         \G
+   
+A <
+   \C
+;
+</pre>
+</div>
+Note how the edge "/" from <i>A</i> to <i>B</i> is this time close
+to <i>B</i> rather than the "<i>&lt;</i>" sign next to <i>A</i>. This is a syntax
+constraint and it is just to be remembered as the second golden
+rule: <b>left child keeps the edge, right child looses the edge.</b>
+</p>
+
+<p><h2>Improving readability</h2>
+Suppose to have the following LGL graph:
+<div class = "code">
+<pre>
+                                            / MDS_2D -> visualize2D
+load_data -> preprocess_data -> pca_reduce <
+                                            \      / hierarchical_clustering
+                                                 .<
+                                                /  \ kmeans_clustering
+                                             . <
+                                                \ MDS_3D -> visualize3D
+;
+</pre>
+</div>
+
+From the point of view of readability, the graph has two problems:
+<ul>
+<li>It tends to grow too much horizontally (consider what happens on large protocols).</li>
+<li>It has a disjoint branch (there is no visual clue connecting the
+node <i>pca_reduce</i> to its right subtree).</li>
+</ul>
+The two problems are solved exploiting a very simple syntax
+feature: the LGL compiler ignores newlines and the pipe symbol ("|").<br><br>
+
+Exploiting newlines, the protocol can be rewritten this way:
+<div class = "code">
+<pre>
+                      / MDS_2D
+                         -> visualize2D
+load_data
+   -> preprocess_data
+      -> pca_reduce <
+                     \      / hierarchical_clustering
+                          .<
+                         /  \ kmeans_clustering
+                      . <
+                         \ MDS_3D
+                            -> visualize3D
+;
+</pre>
+</div>
+Graph chains now develops vertically. Finally we can visually fill
+all the gaps by using pipes:
+<div class = "code">
+<pre>
+                       / MDS_2D
+                      |   -> visualize2D
+load_data             |
+   -> preprocess_data |
+      -> pca_reduce  <
+                      \     / hierarchical_clustering
+                       |  .<
+                       | /  \ kmeans_clustering
+                       .<
+                         \ MDS_3D
+                            -> visualize3D
+;
+</pre>
+</div>
+</p>
+
+
+<p><h2>Node flags and attributes</h2> Special flags can be associated with nodes
+enclosing them into "[]" brackets, as in the following example:
+<div class = "code">
+<pre>
+download_data[F] -> analyze -> save_results [F];
+</pre>
+</div>
+The <i>download_data</i> and <i>save_results</i> nodes are flagged
+as <i>file nodes</i>. This tells Leaf that they produce one or more
+files on the disk. If an LGL graph contains reference (@) nodes, only
+the first node definition must contain the flag. The [F] flag is the
+only one having effect in Leaf at the moment.<br>  LGL also supports
+node attributes through <i>attribute = value</i> pairs. They can be
+also mixed with flags, like in the following example:
+<div class = "code">
+<pre>
+download_data[F, color=green] -> analyze -> save_results [F];
+</pre>
+</div>
+The color attribute will change the color of the node in
+the <i>exported</i> pdf. This is the only attribute currently having
+effects in Leaf.<br>

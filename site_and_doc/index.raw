@@ -1,0 +1,89 @@
+<h2>About Leaf</h2> <p>Leaf is a Python tool for the design and
+management of <strong>Bioinformatic Protocols</strong>, also known
+as <em>data flows</em>. We call them "<em>protocols</em>" to stress
+the importance of producing data flows that make design, execution,
+maintenance, sharing and reproduction of data analysis processes as
+efficient as possible. Leaf was developed in a Bioinformatic
+environment, but can be used in any data analysis project. Leaf is
+mainly implemented in <b>Python</b>, which can be easily interfaced
+with other languages such as <b>R</b>.</p>
+
+<p><h2>Features</h2>
+<ul>
+  <li>Thin, lightweight, code-independent Abstraction Layer.</li>
+  <li>Data flow graph embedded directly into Python source code.</li>
+  <li>Automatic creation and management of variables associated with node outputs.</li>
+  <li>Automatic persistent storage and retrieval of node outputs.</li>
+  <li>Session persistence (i.e. run half project, reboot machine,
+  automatically start again from the last processed node).</li>
+  <li>Lazy builds (avoid running nodes that are not necessary for the
+  build of a requested resource).</li>
+  <li>Enforcement of code version consistency between nodes
+  (i.e. automatically reprocess all nodes deriving from node <i>A</i>
+  if node <i>A</i> is found to be changed).</li>
+  <li>Automatic time and space requirements statistics.</li>
+  <li>Automatic publishing (producing hypertext with visual
+  representation of the protocol, processing statistics, link to node
+  outputs, node documentation and source code).</li>
+</ul>
+</p>
+
+<p><h2>Leaf and Python code</h2>
+<img class="images" src="img/AL.png" padding="10px" align="left">
+A data flow can be seen as a graph, with nodes representing data
+processing routines and edges representing input/output connections
+between them. <b>Custom data analysis</b> is made using languages like
+Python or R (Python can run R code through
+the <a href="http://rpy.sourceforge.net/">Rpy</a> lib), whose aim is
+to implement the data flow. For example, each node can be implemented
+as a Python function. Another Python function can implement the high
+level <i>script</i> running the data flow: it calls appropriate
+routines in sequence and collects results.
+<br><br> With Leaf you define a graph-based data flow
+(the <i>protocol</i>) using the LGL (Leaf Graph Language)
+language. This is written directly into Python source code as a string
+of characters <b>visually</b> representing a graph. The protocol can
+then be bound to existing Python code (graph node labels will match
+Python function names) using pyleaf (the Python library implementing
+Leaf support). At any moment the original code can be run directly or
+through the mediation and support of Leaf. In other words,
+the <b>abstraction layer</b> (AL) between Leaf and Python code is
+thin and optional, allowing for maximum flexibility and independence
+between the code and the AL. The custom analysis source code can (and
+usually has) no reference to the Leaf system and is required to use
+only very few and simple conventions in order to be correctly driven
+by pyleaf.</p>
+
+<p><h2>Using the Leaf system</h2> A data analysis with
+Leaf runs on two different layers (see figure below). The <b>User</b>
+layer includes user's Python code and Python shell
+interactions. The <b>Leaf</b> level includes the Leaf Python libraries
+accepting user's requests. The user writes his custom Python code
+and defines a high level protocol describing dependencies between his
+functions. Then he asks Leaf to apply the protocol to some
+given <i>primary resources</i> (initial data). Leaf runs the
+appropriate code according to the protocol and stores all <i>derived
+resources</i> for future use. The user can request any of them from
+the Python shell or from within other Python scripts identifying them
+directly by the names used in the protocol (no variable has to be
+manually created to store the data). Leaf can also <i>export</i> a pdf
+visualization of the protocol or <i>publish</i> an automatically
+generated full hypertextual report, including the protocol, nodes
+documentation and source code, links to output files and various statistics (such as
+time and space requirements) about the project.</p>
+<div align="center"><img src="img/levels.png"><br></div>
+
+<p><h2>About the
+    Authors</h2> <a href="http://www.unisa.it"><img width="100px"
+    class="images" src="img/logounisa.gif" padding="10px"
+    align="left"></a>Leaf is designed and developed
+    by <a href="http://www.francesconapolitano.it">Francesco
+    Napolitano</a>
+    at <a href="http://www.neuronelab.dmi.unisa.it">NeuRoNe
+    lab</a>, <a href="http://www.di.unisa.it">Dpt. of Computer
+    Science</a>,
+    <a href="http://www.unisa.it">University of Salerno</a>,
+    Italy. The project is partly funded by the Italian Association for
+    Cancer Research (<a href="www.airc.it">AIRC</a>)
+    through the <a href="http://www.unich.it">University G. D'Annunzio,
+    Chieti</a>.</p>

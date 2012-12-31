@@ -1,0 +1,17 @@
+<h2>Leaf examples and tutorials</h2>
+
+
+<ul>
+  <li><a href="samples/ex1.py">Basic example</a>, also accompained by
+  a <a href="samples/ex1_tut.txt">tutorial</a>.</li>
+  <li><a href="samples/ex2.py">Python/R example</a>, using calls to R from
+  within Python. Requires rpy Python package.<br> The published
+  protocol (automatically generated from the python sources) for this
+  example can be seen <a href="samples/published_ex2/ex2.html">here</a>.
+    </li>
+  <li><a href="samples/ex3.html">Real World example</a>, LGL code
+  only. This example is extracted from a real world study whose
+  results are still unpublished. The exported protocol (automatically
+  generated from the python sources) can be
+  seen <a href="samples/published_pglcnv/PGLCNV.html">here</a>.
+</ul>
