@@ -5,11 +5,11 @@ setup(
     packages = ["pyleaf"],
     package_data={'pyleaf': ['resources/leaf.png','resources/style.css']},
     #data_files=[('pyleaf', ['resources/leaf.png','resources/style.css'])],
-    version = "1.0b",
+    version = "1.0.1b",
     description = "ASCII-ART Data Analysis Pipeline Manager",
     author = "Francesco Napolitano",
     author_email = "franapoli@gmail.com",
-    url = "www.neuronelab.dmi.unisa.it/leaf/downloads/pyleaf-1.0b.tar.gz",
+    url = "www.neuronelab.dmi.unisa.it/leaf/downloads/pyleaf-1.0.1b.tar.gz",
     download_url = "",
     keywords = ["bioinformatics", "data", "pipeline"],
     classifiers = [

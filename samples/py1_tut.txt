@@ -1,0 +1,351 @@
+                           pyleaf TUTORIAL
+                           ===============
+
+
+Table of Contents
+=================
+1 Tutorial ex1.py 
+    1.1 Introduction 
+    1.2 Loading the project 
+    1.3 Producing resources 
+    1.4 Ensuring consistency 
+    1.5 Export and Publishing 
+
+
+1 Tutorial ex1.py 
+==================
+
+1.1 Introduction 
+-----------------
+This is a short introductory tutorial meant to give an overview of the
+main features of the Leaf system. The tutorial is based on the example
+ex1.py included in the pyLeaf package.
+
+1.2 Loading the project 
+------------------------
+
+Load the ex1.py source into a Python interactive shell. This can be
+done from within the folder containing the file ex1.py with the
+following command at a Python prompt:
+
+>>> execfile('ex1.py')
+
+NOTE: the "execfile" function has been removed starting with
+Python3. For this example you can use "from ex1 import *" instead.
+
+ex1.py is a very minimal example, performing a sum over many random
+numbers in two different ways: with a for loop and with the Python sum
+function. The two methods are timed in order to see which one is
+faster. Here is the LGL protocol:
+
+         / testFor -> report
+genData <
+         \ testSum -> @report -> exportRes[F]
+;
+
+genData generates random data. The data are passed to both testFor and
+testSum. Both functions return the amount of time they spent
+performing the sum. report compares the two results and send the
+comparison score to exportRes, which in turn saves it to the disk. The
+"[F]" flag is not mandatory, but useful to distinguish nodes producing
+files on the disk.
+
+ex1.py also contains a function named "prj" whose aim is to initialize
+the pyleaf project associated with the above pipeline structure
+(defined in the same file). The function returns a protocol object and
+a project object. The protocol object is the main interface to the
+pipeline management functions. The project object is a higher level
+interface dealing with setting up the protocols (a project may include
+more than one protocols, which is not the case for this example). In
+order to initialize the project:
+
+>>> p, pr = prj()
+[L] Loading user module.
+[L] Initializing protocol with root: leaf_ex1
+[L] graph is new: building fingerprint.
+[L] report is new: building fingerprint.
+[L] genData is new: building fingerprint.
+[L] testSum is new: building fingerprint.
+[L] testFor is new: building fingerprint.
+[L] exportRes is new: building fingerprint.
+
+Lines starting with "[L]" contain Leaf messages. The second line shows
+where the Leaf "protocol root" has been created: a sub-directory named
+leaf_ex1 in the directory containing ex1.py. It will contain all
+pyLeaf internal data about the project. The following 6 lines specify
+that 5 objects have been created, 1 for each of the modules (python
+functions) included in the project, plus 1 for the pipeline
+structure. This information will be used to keep track of
+changes. The directory leaf_ex1 contains pyLeaf memory: deleting it
+corresponds to resetting the status of the project.
+
+1.3 Producing resources 
+------------------------
+
+The main Leaf command in order to build a resource is "provide". The
+provide command will check whether a resource has already been
+produced or not and whether it is already in primary memory or stored
+on the disk (dumped). If not, it will produce it according to the
+pipeline structure. In order to request production of the resource
+"testFor" (testFor is both the name of the node and the name of the
+resource it produces) the following command is issued:
+
+>>> x = p.provide(testFor)
+[L] The following resources will need production: genData, testFor
+[L] Running node: genData
+[L] Dumping resource: genData
+[L] Running node: testFor
+[L] Dumping resource: testFor
+[L] Done in: 00:00:11.28.
+
+The resource testFor has not been provided before, so it will need
+production. According to the protocol, this will also require the
+production of genData. Leaf runs the appropriate nodes and dumps the
+results. Now consider what happens if the resource testSum is
+requested subsequently with the following code:
+
+>>> y = o(testSum)
+[L] The following resources will need production: testSum
+[L] Running node: testSum
+[L] Dumping resource: testSum
+[L] Done in: 00:00:2.16.
+
+The "o()" function ("output of") is an alias for "p.provide()". It is
+defined within the ex1.py file for convenience. This time Leaf only
+needed to produce testSum, since genData was already available.
+
+The node "report" simply computes the ratio x/y. Bypassing Leaf
+completely or in part, it can be computed, for example, in the
+following two ways:
+
+>>> x/y
+5.326954330195621
+>>> o(testFor)/o(testSum)
+5.326954330195621
+
+Note that the second instruction, like the first one, did not require
+any computation. The provide method con also accept multiple requests
+and return a list of the corresponding resources, allowing for the
+following additional way of making the same computation:
+
+>>> o([testFor, testSum])[1] / o([testFor, testSum])[2]
+5.326954330195621
+
+Finally, Leaf internally stores a time stamp and the computational
+time for each node. This information can be requested to pyleaf
+instead of computing it directly:
+
+>>> p.time(testFor)
+('Thu Dec 27 16:45:31 2012', 12.815258979797363)
+>>> p.time(testFor)[2] / p.time(testSum)[2]
+5.854536618211694
+
+If Leaf can't find a resource in memory, it will check the disk for
+previous dumps. The following instructions will delete testSum from
+primary memory, list the status of all resources, produce the "report"
+resource.
+
+>>> p.clear(testSum)
+[L] Clearing resource: testSum
+>>> p.list()
+report   NOT available  NOT dumped
+genData  available      dumped
+testSum  NOT available  dumped
+testFor  available      dumped
+exportRes        NOT available  NOT dumped
+>>> o(report)
+[L] The following resources will be loaded from disk: testSum
+[L] The following resources will need production: report
+[L] Running node: report
+[L] Dumping resource: report
+[L] Done in: 00:00:0.06.
+5.326954330195621
+
+Notice that the actual computational time is close to 0 seconds, while
+the computational time required by testSum is around 2 seconds, as
+previously computed.
+
+It is possible to delete all resources from memory and from the disk
+with the following instructions:
+
+>>> p.clearall()
+[L] Clearing resource: report
+[L] Clearing resource: genData
+[L] Clearing resource: testSum
+[L] Clearing resource: testFor
+>>> p.undumpall()
+[L] Undumping resource: report
+[L] Undumping resource: genData
+[L] Undumping resource: testSum
+[L] Undumping resource: testFor
+
+It is also possible to request the production of all leaf nodes of the
+pipeline as follows (which in this case is equivalent to "o(report)"
+since the protocol has only one leaf node):
+
+>>> p.run()
+[L] The following resources will need production: report, genData, testSum, testFor, exportRes
+[L] Running node: genData
+[L] Dumping resource: genData
+[L] The following nodes can run in parallel: testSum, testFor
+[L] Running node: testFor
+[L] Running node: testSum
+[L] Dumping resource: testSum
+[L] Dumping resource: testFor
+[L] Running node: report
+[L] Dumping resource: report
+[L] Running node: exportRes
+[L] Dumping resource: exportRes
+[L] Done in: 00:00:11.82.
+'reportOut.txt'
+
+The final output, 'reportOut.txt' is what the leaf node exportRes
+returns. Notice the 4th message, signaling that testSum and testFor
+will be executed in parallel, which will improve performance on
+multicore computers. Leaf automatically scans the pipeline in order to
+detect nodes that can run in parallel. How much faster did the
+computation go? The last Leaf message indicates that the overall
+computational time has been around 12 seconds, which is more or less
+the time required by testFor alone. Thus, the 5 seconds required by
+testSum were saved thanks to parallel processing.
+
+1.4 Ensuring consistency 
+-------------------------
+
+Leaf is aware of the source code used to produce each resource. When
+code changes, pyleaf invalidates all dependant resources. In the
+example ex1.py, try to change the code of the function testFor, for
+example replacing the for loop:
+
+    for i in range(0, len(data)):
+        x = x + data[i]
+
+with a while loop:
+
+    i = 0
+    while i < len(data):
+        x = x + data[i]
+        i = i + 1
+
+Save the file. The following instruction (this time pr, the project
+object, is used) will ask Leaf to look for changes in the source code:
+
+>>> pr.update()
+[L] Reloading user module.
+[L] testFor has changed: updating.
+[L] Resetting resource: testFor
+[L] Resetting resource: report
+[L] Resetting resource: exportRes
+
+Leaf noticed a change in testFor and "untrusted" the node,
+i.e. cleared and undumped testFor and all its descendants. The same
+can be forced issuing the following instruction:
+
+>>> p.untrust(testFor)
+
+Leaf can also detect changes across sessions. Run the project again:
+
+>>> p.run()
+[L] The following resources will need production: report, testFor
+[L] Running node: testFor
+[L] Dumping resource: testFor
+[L] Running node: report
+[L] Dumping resource: report
+[L] Done in: 00:00:12.60.
+4.890758776530981
+
+Close the Python shell and put back the for loop in testFor. Open a
+Python shell and enter:
+
+>>> execfile('ex1.py')
+>>> p, pr = prj()
+[L] Loading user module.
+[L] Initializing protocol with root: leaf_ex1
+[L] graph is dumped in leaf_ex1/graph.grp: loading it.
+[L] report is dumped in leaf_ex1/report.res: loading it.
+[L] genData is dumped in leaf_ex1/genData.res: loading it.
+[L] testSum is dumped in leaf_ex1/testSum.res: loading it.
+[L] testFor is dumped in leaf_ex1/testFor.res: loading it.
+[L] exportRes is dumped in leaf_ex1/exportRes.res: loading it.
+[L] report is dumped in leaf_ex1/report.mod: loading it.
+[L] genData is dumped in leaf_ex1/genData.mod: loading it.
+[L] testSum is dumped in leaf_ex1/testSum.mod: loading it.
+[L] testFor is dumped in leaf_ex1/testFor.mod: loading it.
+[L] exportRes is dumped in leaf_ex1/exportRes.mod: loading it.
+[L] testFor has changed: updating.
+[L] Resetting resource: testFor
+[L] Resetting resource: report
+[L] Resetting resource: exportRes
+
+Both resources (.res files) and previous source code of node (or
+"module", that's why .mod files) testFor are found changed and
+untrusted.
+
+Also the pipeline structure is monitored. This can be tested by
+changing the lgl code as follows:
+
+         / report
+genData <
+         \ testSum -> @report -> exportRes[F]
+;
+
+After saving the file, the Leaf system is made aware of the changes by
+issuing:
+
+>>> pr.update()
+[L] Reloading user module.
+[L] Inputs to report have changed, untrusting it.
+[L] graph has changed: updating.
+[L] Resetting resource: report
+[L] Resetting resource: exportRes
+
+Leaf analyzes the new pipeline structure and untrusts (only) the
+necessary nodes.
+
+1.5 Export and Publishing 
+--------------------------
+
+There are three main ways of exporting a Leaf protocol: building a
+simple pdf representing the pipeline strucutre; deriving a more
+elaborate pdf including different node shape for F-nodes (nodes
+producing files on the disk) and node documentation; publishing a full
+hypertextual protocol with additional information and node source
+code. To use export and publishing features, graphviz features are
+needed ([http://www.graphviz.org]).
+
+* Exporting the pipeline structure 
+  
+  Upon creating a Leaf project (pyleaf.prj object), a DOT file is output
+  to the project's root directory, named leafprot.lf.dot. DOT is a graph
+  description format that supports tools to build graphical
+  visualizations. A visualization of the project's pipeline can be
+  obtained running the following command from a system shell:
+  
+  $ dot -Tpdf leafprot.lf.dot -o leafprot.pdf
+  
+* Exporting the protocol's pipeline 
+  
+  By "protocol's pipeline" we mean the pipeline as included in the
+  protocol document output by the "publish" method (see below). In
+  addition to the pipeline structure, it also includes documentation
+  stripped from the source code and rectangular shape for nodes
+  producing files. It can be produced with the following call:
+  
+  >>> p.export('py1')
+  
+  
+* Publishing Leaf protocol: 
+  
+  Finally, a complete hypertext reporting the pipeline, some statistics
+  about the project, source code for all nodes and links to the produced
+  files can be obtained by:
+  
+  >>> p.publish('py1')
+  
+  By default, a directory named "html" will be created, including a
+  "py1.html", which is the final protocol documentation.
+  
+  [1] FOOTNOTE DEFINITION NOT FOUND: 0
+  
+  [2] FOOTNOTE DEFINITION NOT FOUND: 1
+  
