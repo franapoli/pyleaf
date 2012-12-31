@@ -69,5 +69,5 @@ Using pyleaf
 
 Please check the "doc" directory (if this is part of a source
 distribution you may need to build the documentation, see
-"site_and_doc" directory"). You may also want to start with the
+"site_and_doc" directory). You may also want to start with the
 tutorial "ex1_tut.txt" in the directory "samples".
