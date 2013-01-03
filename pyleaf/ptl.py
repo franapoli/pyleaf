@@ -110,14 +110,18 @@ class protocol():
         """Lists the outputs for a node."""
         return self._getGraph().getOutNodes(node)       
 
+    def resetall(self):
+        """Clears and undumps all resources"""
+        for res in self._getResNames():
+            self.clear(res)
 
     def clearall(self):
-        """Clears all dumped resources"""
+        """Clears all resources from RAM"""
         for res in self._getResNames():
             self.clear(res)
 
     def undumpall(self):
-        """Deletes all dumped resources"""
+        """Deletes all resources from the disk"""
         for res in self._getResNames():
             self.undump(res)
 
