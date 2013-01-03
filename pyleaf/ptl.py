@@ -103,9 +103,11 @@ class protocol():
             self.untrust(mod)
 
     def listinputs(self, node):
+        """Lists the inputs for a node."""
         return self._getGraph().getInNodes(node)
 
-    def listoutputs(self, node): 
+    def listoutputs(self, node):
+        """Lists the outputs for a node."""
         return self._getGraph().getOutNodes(node)       
 
 
