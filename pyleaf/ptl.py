@@ -497,7 +497,7 @@ class protocol():
             return builtres[0]
 
     def _runNodes(self, nodes, serial = False):
-        if not serial:
+        if not serial and len(nodes)>1:
             from multiprocessing import Process, Queue
             results = Queue()
             tasks = list()
