@@ -125,6 +125,9 @@ class protocol():
 
     def getinputs(self, mod):
         """Collects all input resources that are input to the given filter and returns a copy of them in a list."""
+        if type(mod) != str:
+            mod = mod.__name__
+
         innodes = self._getInNodes(mod)
         ids = [self._getGraph().getAttrib(_node, 'id') for _node in innodes]
         nodeparams = [copy.deepcopy(self._getResource(innode).getValue()) for innode in innodes]
