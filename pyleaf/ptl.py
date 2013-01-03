@@ -113,7 +113,7 @@ class protocol():
     def resetall(self):
         """Clears and undumps all resources"""
         for res in self._getResNames():
-            self.clear(res)
+            self.reset(res)
 
     def clearall(self):
         """Clears all resources from RAM"""
