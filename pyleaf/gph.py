@@ -173,8 +173,7 @@ rankdir=LR;
         nodelines = re.findall(r'(\d+) \[ (.*)\]', a)
         nodes = list()        
 
-#        import pdb;pdb.set_trace()
-
+        ## Creating nodes
         for node in nodelines:
             nodeid = node[0]
             nodename = ''
@@ -192,6 +191,7 @@ rankdir=LR;
         names = dict()
         for node in nodes: names[node[0]]=node[1]
             
+        ## Creating edges
         for edge in edges:
             thisnodes = re.findall('\d+', edge[0])
             key = names[thisnodes[0]]
@@ -201,9 +201,16 @@ rankdir=LR;
                 self[key]=[names[thisnodes[1]]]
             eattrib = re.findall('(.*)=(.*)', edge[1])[0]
 
-            self.setEdgeAttrib((names[thisnodes[0]],
-                               names[thisnodes[1]]),
-                               eattrib[0], eattrib[1])
+            ## IDs are converted to integer numbers
+            if eattrib[0] == 'id':
+                self.setEdgeAttrib((names[thisnodes[0]],
+                                    names[thisnodes[1]]),
+                                   eattrib[0], int(eattrib[1]))
+            ## All the rest are left as strings
+            else:
+                self.setEdgeAttrib((names[thisnodes[0]],
+                                    names[thisnodes[1]]),
+                                   eattrib[0], eattrib[1])
     
         for value in names.values():
             if not(value in self.keys()):
