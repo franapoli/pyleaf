@@ -37,11 +37,11 @@ pipeline example
 ----------------
 
 
-          / regression -> plots [F]
-getData  <
-          \  / @plots
-           .<
-             \ exportCSV [F]
+              / regression -> plots [F]
+    getData  <
+              \  / @plots
+               .<
+                 \ exportCSV [F]
 
 
 Home Page
