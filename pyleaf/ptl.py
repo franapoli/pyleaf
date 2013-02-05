@@ -860,7 +860,7 @@ class protocol():
         newresname = self._buildResName(node, None, newres)
         dbgstr('Requesting add resource: ' + node, 2)
         t = time.time() - t
-        self._newResource(newresname, newres, t)
+        #self._newResource(newresname, newres, t)
             
         return newres, newresname, t
 

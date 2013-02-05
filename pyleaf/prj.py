@@ -37,7 +37,7 @@ class project():
     defined inside a module whose name is passed to the leaf.project constructor.
     """
     
-    def __init__(self, modulename, leafprot, lglSrcOff=0):
+    def __init__(self, modulename, leafprot, lglSrcOff=0, language='lgl'):
         self._lglSrcOff = lglSrcOff
         self._modulename = modulename        
         self._metafolder = 'leaf_' + modulename        
@@ -45,7 +45,8 @@ class project():
             os.mkdir(self._metafolder)
         self._updateUserModule()
         self._protName = leafprot
-        self._leafProt=self._seekforProt(leafprot)
+        self._leafProt = self._seekforProt(leafprot)
+        self._language = language
         self._initGraphs(self._leafProt)
 
     def _extract_doc(self, lglprot):
@@ -107,7 +108,7 @@ class project():
         if leafprot == '':
             leafprot = self._guessLeafProt()
 
-        self._graph.fromLeaf(leafprot, self._lglSrcOff)
+        self._graph.load(self._language, leafprot, self._lglSrcOff)
         
         mods = self._seekforMods()
 

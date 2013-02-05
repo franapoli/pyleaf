@@ -159,14 +159,17 @@ rankdir=LR;
     def getEdgeAttrib(self, edge, key):
         return self._edgeattribs[edge, key]
 
-    def fromLeaf(self, leafprot, erroffset):
-        self._nodeattribs=dict()
-        self._edgeattribs=dict()
+    def load(self, language, source, erroffset):
+        if language == 'lgl':
+            self._fromLgl(source, erroffset)
+        elif language == 'ldot':
+            self._fromLdot(source, erroffset)
 
-        a = self.lgl2dot(leafprot, erroffset)
-
+    def _fromLdot(self, source):
         for key in self.keys():
             del(self[key])
+
+        a = source
 
         edges = re.findall(r'(\d+->\d+) \[(.*)\]', a)
         #edges = re.findall(r'\d+->\d+', a)
@@ -190,7 +193,7 @@ rankdir=LR;
             
         names = dict()
         for node in nodes: names[node[0]]=node[1]
-            
+        
         ## Creating edges
         for edge in edges:
             thisnodes = re.findall('\d+', edge[0])
@@ -221,6 +224,15 @@ rankdir=LR;
 
         #os.remove('leafprot.lf.dot')
         log.send('Graph is: ' + str(self), 2)        
+
+    def _fromLgl(self, leafprot, erroffset):
+        self._nodeattribs=dict()
+        self._edgeattribs=dict()
+
+        a = self.lgl2dot(leafprot, erroffset)
+
+        self._fromLdot(a)
+
 
         
     _nodeattribs = dict()
