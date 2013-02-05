@@ -140,7 +140,7 @@ class protocol():
         nodeparams=[one for (one,two) in sorted(zip(nodeparams, ids), key = lambda x:x[1])]      
         return tuple(nodeparams)
 
-    def run(self, serial = False):
+    def run(self, parallel = False):
         """Provides all leaf (final) resources."""
         res = None
         allok = True
@@ -153,7 +153,7 @@ class protocol():
         if allok:
             dbgstr('Nothing to be done. Zzz...')
         else:
-            res = self.provide(l, serial)
+            res = self.provide(l, parallel)
         return res
     
     def untrust(self, nodename):
@@ -452,7 +452,7 @@ class protocol():
     def _prettyPrint(self, x):
         return str(x).strip('[]').replace("'","")
 
-    def provide(self, res, serial=False):
+    def provide(self, res, parallel=False):
         t = time.time()
 
         if not type(res) == list:
@@ -481,13 +481,11 @@ class protocol():
 
         while True:
             canrun = self._findRunnable(needbuild)
-            if len(canrun) > 1:
+            if len(canrun) > 1 and parallel:
                 dbgstr('The following nodes can run in parallel: '+
                        self._prettyPrint(canrun))
-                if serial:
-                    dbgstr('But serial processing was requested!')
 
-            self._runNodes(canrun, serial)
+            self._runNodes(canrun, parallel)
             needbuild=[x for x in needbuild if not x in canrun]
 
             if len(canrun)==0:
@@ -505,8 +503,8 @@ class protocol():
         else:
             return builtres[0]
 
-    def _runNodes(self, nodes, serial = False):
-        if not serial and len(nodes)>1:
+    def _runNodes(self, nodes, parallel = False):
+        if parallel and len(nodes)>1:
             from multiprocessing import Process, Queue
             results = Queue()
             tasks = list()
@@ -526,17 +524,12 @@ class protocol():
                 self._newResource(resname, taskres[1], t)
         else:
             for node in nodes:
-                # the following mimics the parallel code to avoid
-                # changing code, but should be polished
-                from multiprocessing import Process, Queue
-                results = Queue()
                 nodeparams = self._getNodePar(node)
-                self._callModPar(node, nodeparams, results)
-                taskres = results.get()
-                resname = self._buildResName(taskres[0], None, taskres[1])
-                dbgstr('Requesting add resource: ' + taskres[0], 2)
+                taskres = self._callMod(node, nodeparams)
+                resname = self._buildResName(taskres[1], None, taskres[0])
+                dbgstr('Requesting add resource: ' + resname, 2)
                 t=taskres[2]
-                self._newResource(resname, taskres[1], t)
+                self._newResource(resname, taskres[0], t)
 
     def time(self, node):
         if type(node) != str:
@@ -869,7 +862,7 @@ class protocol():
         t = time.time() - t
         self._newResource(newresname, newres, t)
             
-        return newres, newresname
+        return newres, newresname, t
 
     def _callModPar(self, node, nodeparams, queue):
            
