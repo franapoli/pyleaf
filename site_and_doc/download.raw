@@ -7,8 +7,10 @@ binaries. You need both the components (pyleaf and lglc) to use Leaf.
 <ul>
 <li>Precompiled binaries are available
 for <a href="downloads/lglc-linux32.zip">32-bit Linux</a>
-and <a href="downloads/lglc-win32.zip">Windows</a>. The path to the
-lglc binary must be included in the PATH environment variable.</li>
+and <a href="downloads/lglc-win32.zip">Windows</a> (for the latter,
+note that some dll files may be required that are not present in your
+system: they are publicly available). The path to the lglc binary must
+be included in the PATH environment variable.</li>
 <li>C++ source package can be obtained from github:
 <br><br>
 $ git clone https://github.com/franapoli/lglc</li>
