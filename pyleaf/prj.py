@@ -97,7 +97,7 @@ class project():
 
     def _updateGraphs(self, leafprot):
         newGraph = graph()
-        newGraph.fromLeaf(leafprot, self._lglSrcOff)
+        newGraph.load(self._language, leafprot, self._lglSrcOff)
 
             #TODO: the following includes stuff copy-pasted
             #from i_nitGraphs. Should be restructured.
