@@ -11,6 +11,17 @@ diagram through a language called LGL (Leaf Graph Language, see
 https://github.com/franapoli/lglc).
 
 
+Scientific publications
+-----------------------
+
+Please consider the reference below to cite Leaf if you are using
+it. The paper is also a good introductory guide.
+
+Napolitano, F., Mariani-Costantini, R., Tagliaferri, R.,
+2013. Bioinformatic pipelines in Python with Leaf. BMC Bioinformatics
+14, 201.
+
+
 Features
 --------
 
