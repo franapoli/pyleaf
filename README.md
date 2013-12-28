@@ -8,7 +8,7 @@ pyleaf is the Python implementation of the Leaf system. The Leaf
 system is a pipeline (AKA data flow or data analysis protocol)
 management system that allows to design the pipeline as an ASCII-art
 diagram through a language called LGL (Leaf Graph Language, see
-https://github.com/franapoli/lglc).
+https://github.com/franapoli/lglc - also see INSTALL paragraph below).
 
 
 Scientific publications
@@ -58,15 +58,21 @@ pipeline example
 Home Page
 ---------
 
-       http://www.neuronelab.dmi.unisa.it/leaf
+       http://www.francesconapolitano.it/leaf
 
 
 INSTALL
 =======
 
-pyleaf *requires* lglc. Get it from 
+pyleaf *requires* lglc. Precompiled Windows and Linux binaries are
+available at:
 
-https://github.com/franapoli/lglc
+    http://www.francesconapolitano.it/leaf/downloads
+
+C++ sources from:
+
+    https://github.com/franapoli/lglc
+
 
 To install pyleaf:
 
