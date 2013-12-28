@@ -2,10 +2,15 @@
 or both of the following sources:
 <ul>
   <li>
-    This
-    site: <a href="http://www.neuronelab.dmi.unisa.it/leaf">http://www.neuronelab.dmi.unisa.it/leaf</a>
+    Francesco Napolitano, Renato Mariani-Costantini, e Roberto
+    Tagliaferri. <i>Bioinformatic Pipelines in Python with
+    Leaf</i>. BMC Bioinformatics 14, n. 1 (2013):
+    201. doi:10.1186/1471-2105-14-201.
   </li>
   <li>
-    [work in progress]
+    This
+    site: <a href="http://www.francesconapolitano.it/leaf">http://www.francesconapolitano.it/leaf</a>
   </li>
 </ul>
+
+The paper can be found at this URL: <a "href=http://www.biomedcentral.com/1471-2105/14/201">http://www.biomedcentral.com/1471-2105/14/201</a>.
