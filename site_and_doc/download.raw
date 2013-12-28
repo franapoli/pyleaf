@@ -80,6 +80,6 @@ You may require root privileges.<br><br>
 
 <h2>License</h2> The Leaf system is composed by the pyleaf library and
 the LGL compiler (<i>lglc</i>). They are both distributed under
-the <a href="http://www.gnu.org/licenses/gpl-3.0.txt">GNU GPL</a>
+the <a href="http://opensource.org/licenses/MIT">MIT</a>
 license. Leaf users should give credit by properly
 <a href="citing.html">citing</a> it.
