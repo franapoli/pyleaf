@@ -1,7 +1,7 @@
 
 TARGET = 'site'
 
-if TARGET == 'help':
+if TARGET == 'site':
     pagelist = ['index', 'concepts', 'lgl', 'pyleaf', 'examples', 'citing', 'download']
     pageNames = ['Leaf home',  'Concepts', 'LGL Howto', 'Pyleaf Howto', 'Examples', 'Citing Leaf', 'Downloads']
     folder = 'leafsite'
