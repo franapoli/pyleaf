@@ -128,7 +128,7 @@ any computation. The provide method con also accept multiple requests
 and return a list of the corresponding resources, allowing for the
 following additional way of making the same computation:
 
->>> o([testFor, testSum])[1] / o([testFor, testSum])[2]
+>>> o([testFor, testSum])[0] / o([testFor, testSum])[1]
 5.326954330195621
 
 Finally, Leaf internally stores a time stamp and the computational
@@ -137,7 +137,7 @@ instead of computing it directly:
 
 >>> p.time(testFor)
 ('Thu Dec 27 16:45:31 2012', 12.815258979797363)
->>> p.time(testFor)[2] / p.time(testSum)[2]
+>>> p.time(testFor)[1] / p.time(testSum)[1]
 5.854536618211694
 
 If Leaf can't find a resource in memory, it will check the disk for

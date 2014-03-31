@@ -410,7 +410,7 @@ class protocol():
         f.write('<div align = "center">')
         f.write('<IMG SRC="' + oname + '.gif" USEMAP="#G" />\n')
         f.write('</div>')
-        map = open(ofile + '.map').read()
+        map = open(fullname + '.map').read()
         f.write(map)
 
         f.write('<h2>Modules'' details<h2>\n')
