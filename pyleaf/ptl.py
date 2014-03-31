@@ -410,7 +410,7 @@ class protocol():
         f.write('<div align = "center">')
         f.write('<IMG SRC="' + oname + '.gif" USEMAP="#G" />\n')
         f.write('</div>')
-        map = open(ofile + '.map').read()
+        map = open(fullname + '.map').read()
         f.write(map)
 
         f.write('<h2>Modules'' details<h2>\n')
@@ -982,7 +982,7 @@ class protocol():
         dbgstr('Getting resource ' + str(res) + ' from disk.', 2)
         if self._isDumped(res):
             dbgstr('Resource ' + str(self._resmap[res]) + ' found in: ' + self._resmap[res].getDumpPath() ,2)
-            return pickle.load(open(self._resmap[res].getDumpPath(), 'r'))
+            return pickle.load(open(self._resmap[res].getDumpPath(), 'rb'))
         else:
             dbgstr('Resource ' + str(res) + ' not found on disk! I\'ve been looking for: ' + self._resmap[res].getDumpPath())
 
