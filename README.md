@@ -1,8 +1,8 @@
+[![Downloads](https://img.shields.io/pypi/dm/pyleaf.svg)](https://pypi.python.org/pypi/pyleaf)
 
 =============
 pyleaf README
 =============
-
 
 pyleaf is the Python implementation of the Leaf system. The Leaf
 system is a pipeline (AKA data flow or data analysis protocol)
