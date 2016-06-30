@@ -2,8 +2,7 @@
 [1.2]: http://i.imgur.com/wWzX9uB.png (me on Twitter)
 [1]: http://www.twitter.com/franapoli
 <!-- Grab your social icons from https://github.com/carlsednaoui/gitsocial -->
-[![Downloads](https://img.shields.io/pypi/dm/pyleaf.svg)](https://pypi.python.org/pypi/pyleaf)
-[![alt text][1.2]][1]
+On Twitter: [![alt text][1.2]][1]
 
 =============
 pyleaf README
