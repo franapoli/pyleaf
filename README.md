@@ -20,9 +20,9 @@ Scientific publications
 Please consider the reference below to cite Leaf if you are using
 it. The paper is also a good introductory guide.
 
-Napolitano, F., Mariani-Costantini, R., Tagliaferri, R.,
+[Napolitano, F., Mariani-Costantini, R., Tagliaferri, R.,
 2013. Bioinformatic pipelines in Python with Leaf. BMC Bioinformatics
-14, 201.
+14, 201.](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14-201)
 
 
 Features
