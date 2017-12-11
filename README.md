@@ -4,7 +4,6 @@
 <!-- Grab your social icons from https://github.com/carlsednaoui/gitsocial -->
 On Twitter: [![alt text][1.2]][1]
 
-=============
 pyleaf README
 =============
 
