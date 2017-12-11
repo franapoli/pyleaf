@@ -1,3 +1,7 @@
+December 2017 -- Old site is down, added link to pythonhosted and included lglc binary in the source package.
+
 v1.0.1, December 2013 -- Removing Beta, updated some URL references.
+
 v1.0.1b, January 2012 -- Fixed a Windows issue with the lglc binary.
+
 v1.0b, January 2012 -- Initial release.
