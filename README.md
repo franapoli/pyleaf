@@ -62,16 +62,16 @@ pipeline example
 Home Page
 ---------
 
-       http://www.francesconapolitano.it/leaf
+    https://pythonhosted.org/pyleaf
 
 
 INSTALL
 =======
 
 pyleaf *requires* lglc. Precompiled Windows and Linux binaries are
-available at:
+included in the lglc\_bin directory and must be in the system PATH.
 
-    http://www.francesconapolitano.it/leaf/downloads
+    
 
 C++ sources from:
 
